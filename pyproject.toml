@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools >= 61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pyest"
+dynamic = ["version"]
+dependencies = [
+    'cvxopt',
+    'diskcache',
+    'huggingface_hub',
+    'jax',
+    'numba',
+    'numpy',
+    'pyarrow',
+    'fastparquet',
+    'scipy',
+    'shapely',
+]
+[project.optional-dependencies]
+test = [
+    'dill',
+    'pytest-cov',
+    'pytest-benchmark',
+]
+examples = [
+    'matplotlib',
+    'sympy==1.12',
+    'STMInt @ git+ssh://git@github.com/SIOSlab/STMInt.git',
+]

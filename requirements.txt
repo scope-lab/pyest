@@ -1,0 +1,7 @@
+cvxopt
+diskcache
+matplotlib
+numpy
+scipy
+shapely
+numba
