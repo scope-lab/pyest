@@ -26,5 +26,5 @@ test = [
 examples = [
     'matplotlib',
     'sympy==1.12',
-    'STMInt @ git+ssh://git@github.com/SIOSlab/STMInt.git',
+    'STMInt @ git+https://github.com/SIOSlab/STMInt.git',
 ]
