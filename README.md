@@ -83,6 +83,11 @@ pip install -e .[test]
 ## Testing
 
 ### using tox (recommended)
+If you don't already have tox installed, you can pip install it
+```
+pip install tox
+```
+
 To run unit tests, run
 ```
 tox run
