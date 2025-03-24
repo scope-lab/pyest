@@ -40,6 +40,8 @@ J. Kulik and K.A. LeGrand, “Nonlinearity and Uncertainty Informed Moment-Match
 ```
 
 ## Installation
+
+### OS X (zsh)
 To install, run
 ```shell
 pip install -e .
@@ -56,6 +58,25 @@ pip install -e '.[test]'
  or to install everything,
  ```shell
  pip install -e '.[test,examples]'
+ ```
+
+### OS X (bash), Windows (cmd prompt)
+To install, run
+```shell
+pip install -e .
+```
+
+To install packages needed for testing,
+```shell
+pip install -e .[test]
+```
+ To install packages needed for running the examples, run
+ ```shell
+ pip install -e .[examples]
+ ```
+ or to install everything,
+ ```shell
+ pip install -e .[test,examples]
  ```
 
 
