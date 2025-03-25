@@ -1,4 +1,5 @@
-# pyest
+![pyest_logo](./docs/image/pyest_logo.png)
+# PyEst: Gaussian Mixture Adaptive State Estimation
 
 ## Citing this work
 
@@ -11,7 +12,7 @@ J. Kulik and K.A. LeGrand, “Nonlinearity and Uncertainty Informed Moment-Match
 
 ```
 @article{legrand2022SplitHappensImprecise,
-  title = {Split {{Happens}}! {{Imprecise}} and {{Negative Information}} in {{Gaussian Mixture Random Finite Set Filtering}}},
+  title = {Split {{Happens}}! Imprecise and Negative Information in {G}aussian Mixture Random Finite Set Filtering},
   author = {LeGrand, Keith A. and Ferrari, Silvia},
   year = {2022},
   month = dec,
