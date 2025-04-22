@@ -586,8 +586,11 @@ class GaussianMixture(object):
         raise RuntimeError("Can not set size directly.")
 
     def __add__(self, gm2):
-        if gm2 is 0:  # noqa
+        if isinstance(gm2, int) and gm2 == 0:  # Explicitly check for integer 0
             return self
+
+        if not isinstance(gm2, GaussianMixture):
+            raise TypeError("Can only add GaussianMixture objects or 0.")
 
         w = np.hstack((self.w, gm2.w))
         m = np.vstack((self.m, gm2.m))
