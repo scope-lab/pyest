@@ -34,7 +34,7 @@ plt.title("True Density")
 plt.show()
 
 # %%
-split_opts = gm.GaussSplitOptions(L=3, lam=1e-3, min_weight=1e-4)
+split_opts = gm.GaussSplitOptions(L=3, lam=1e-3, min_weight=1e-2)
 p_split = gm.split_for_fov(p, fov, split_opts)
 
 # compute the sum of the weights of components outside the FoV

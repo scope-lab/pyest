@@ -1,0 +1,30 @@
+# Sphinx build directory
+_build/
+
+# Sphinx static files
+_static/
+
+# Sphinx templates (if using defaults)
+_templates/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE files
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
