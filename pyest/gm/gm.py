@@ -58,7 +58,7 @@ def __check_num_comp(L):
 
 def find_gm_res(stdmax, width=1):
     """find necessary number of components needed to meet comp. std max"""
-    global sigmavals
+    global sigmavals # noqa: F824
     __check_width(width)
     if sigmavals is None:
         sigmavals = load_1d_unifit_sigmavals()
@@ -70,7 +70,7 @@ def find_gm_res(stdmax, width=1):
 
 def optimal_homoscedastic_std(L, width=1):
     """generates optimal std for an L component GM under homoscedasticity constraint"""
-    global sigmavals
+    global sigmavals # noqa: F824
     __check_width(width)
     __check_num_comp(L)
 
@@ -135,7 +135,7 @@ def fit_weights_to_f_1d(xvals, fvals, m, std):
 
 
 def gm_fit_1d(xvals, pvals, support=None, stdmax=None, L=None):
-    global sigmavals
+    global sigmavals # noqa: F824
 
     if support is None:
         support = (min(xvals), max(xvals))
