@@ -39,3 +39,17 @@ To run unit tests with performance benchmarking:
 ```
 pytest --benchmark-save=benchmark --benchmark-compare --cov=pyest --cov-report term-missing tests
 ```
+
+## Documentation
+
+To build the documentation:
+
+```
+pip install sphinx sphinx-rtd-theme
+```
+
+Then,
+```
+cd docs
+make html
+```
