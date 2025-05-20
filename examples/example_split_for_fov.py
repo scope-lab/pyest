@@ -13,25 +13,19 @@ p = gm.defaults.default_gm(covariance_rotation=np.pi / 6)
 fov = default_poly_fov()
 
 # %%
-# check that the integral of pdf outside fov matches split
+# compute the unnormalized posterior numerically for comparison
 pp, XX, YY = p.pdf_2d(dimensions=(0, 1), res=400)
-box_area = (np.max(XX) - np.min(XX)) * (np.max(YY) - np.min(YY))
-# compute the integral of the density over the box
-int_inside_box = box_area * np.mean(pp)
 # find which points are inside fov
 in_mask = fov.contains(np.vstack((XX.flatten(), YY.flatten())).T)
 in_mask_mat = np.reshape(in_mask, XX.shape)
 # set pdf evaluations inside fov to zero
 pp[in_mask_mat] = 0
-int_outside_fov_inside_box = box_area * np.mean(pp)
-true_int_outside_fov = (1 - int_inside_box) + int_outside_fov_inside_box
 
 # %%
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.contourf(XX, YY, pp)
-plt.title("True Density")
-plt.show()
+plt.title("Example 1: True Posterior Density")
 
 # %%
 split_opts = gm.GaussSplitOptions(L=3, lam=1e-3, min_weight=1e-2)
@@ -39,8 +33,6 @@ p_split = gm.split_for_fov(p, fov, split_opts)
 
 # compute the sum of the weights of components outside the FoV
 comp_mask_in_fov = np.array(fov.contains(p_split.m[:, :2]))
-int_outside_fov = np.sum(p_split.w[~comp_mask_in_fov])
-# assert(np.abs(true_int_outside_fov - int_outside_fov) < 0.02)
 
 
 # %%
@@ -53,22 +45,17 @@ fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.contourf(xx, yy, pp, levels=150)
 ax.plot(*fov.polygon.exterior.xy)
-plt.title("Split Density")
-plt.show()
+plt.title("Example 1: Split Density")
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
 ax.contourf(xx, yy, pp, levels=150)
 ax.plot(p_split.m[:, 0], p_split.m[:, 1], '.')
 ax.plot(*fov.polygon.exterior.xy)
-plt.title("Split Density")
-plt.show()
+plt.title("Example 1: Split Density w/ Mixand Mean Locations")
 
 # %%
-print(len(p_split))
-print(len(p_oofov))
-
-# %%
+# -------- Example 2: Two FoVs, pD=0.9 -------------
 # create a cone FoV
 r = 10
 alpha = np.pi / 6
@@ -121,8 +108,7 @@ ax.tick_params(
     labelbottom=False,  # labels along the bottom edge are off
     labelleft=False)  # labels along the left edge are off
 plt.savefig('FigConeFovDensity.png', dpi=300, transparent=True, bbox_inches='tight')
-plt.title("Simple Density")
-plt.show()
+plt.title("Example 2: Prior Density")
 
 # %%
 # split the density along the FoV bounds
@@ -155,7 +141,7 @@ ax.tick_params(
     labelbottom=False,  # labels along the bottom edge are off
     labelleft=False)  # labels along the left edge are off
 plt.savefig('FigConeFovDensitySplitUpdated.png', dpi=300, transparent=True, bbox_inches='tight')
-plt.title("Simple Density, Split and Updated")
+plt.title("Example 2: Split and Updated Posterior, pD=0.9")
 plt.show()
 
 # %%
