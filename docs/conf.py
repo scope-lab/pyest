@@ -4,6 +4,7 @@
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
 import os
+import re
 import sys
 sys.path.insert(0, os.path.abspath('..'))
 
@@ -13,7 +14,10 @@ sys.path.insert(0, os.path.abspath('..'))
 project = 'pyest'
 copyright = '2025, Keith LeGrand and Jackson Kulik'
 author = 'Keith LeGrand and Jackson Kulik'
-release = '0.1.0'
+# The full version, including alpha/beta/rc tags.
+release = re.sub('^v', '', os.popen('git describe').read().strip())
+# The short X.Y version.
+version = release
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
