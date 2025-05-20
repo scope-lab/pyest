@@ -853,6 +853,13 @@ def id_safos(p, jacobian_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -888,6 +895,13 @@ def id_usfos(p, jacobian_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
 
     split_mask = np.full(p.w.shape, False)
@@ -928,6 +942,13 @@ def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -981,6 +1002,13 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
 
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1021,6 +1049,18 @@ def id_solc(p, pdt_func, tol):
         nonlinear function partial derivative tensor of the form
         pdt_func(x1, x2, ..., xn)
 
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+    .. [2] K. Tuggle and R. Zanetti, “Automated Splitting Gaussian mixture
+           Nonlinear Measurement Update,” Journal of Guidance, Control, and Dynamics,
+           vol. 41, no. 3, pp. 725–734, 2018.
+    .. [3] K. Tuggle, “Model Selection for Gaussian Mixture Model Filtering and
+           Sensor Scheduling,” Ph.D. dissertation, 2020.
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1056,6 +1096,18 @@ def id_ussolc(p, pdt_func, tol):
     -------
     split_mask : np.ndarray
         (nC,) boolean array indicating which components are marked for splitting
+
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+    .. [2] K. Tuggle and R. Zanetti, “Automated Splitting Gaussian mixture
+           Nonlinear Measurement Update,” Journal of Guidance, Control, and Dynamics,
+           vol. 41, no. 3, pp. 725–734, 2018.
+    .. [3] K. Tuggle, “Model Selection for Gaussian Mixture Model Filtering and
+           Sensor Scheduling,” Ph.D. dissertation, 2020.
 
     """
     split_mask = np.full(p.w.shape, False)
@@ -1103,6 +1155,13 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
 
     """
     split_mask = np.full(p.w.shape, False)
@@ -1159,6 +1218,13 @@ def id_sasos(p, pdt_func, tol):
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
 
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1203,6 +1269,13 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
 
     """
     split_mask = np.full(p.w.shape, False)
@@ -1319,6 +1392,13 @@ def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
 
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1368,6 +1448,13 @@ def id_wussadl(p, jacobian_func, g, sigma_pt_opts, tol, deterministic_whitening=
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
+
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
 
     """
 
