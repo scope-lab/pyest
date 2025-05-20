@@ -11,7 +11,7 @@ sys.path.insert(0, os.path.abspath('..'))
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
 project = 'pyest'
-copyright = '2024, Keith LeGrand and Jackson Kulik'
+copyright = '2025, Keith LeGrand and Jackson Kulik'
 author = 'Keith LeGrand and Jackson Kulik'
 release = '0.1.0'
 
@@ -33,6 +33,8 @@ exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
 html_theme = 'sphinx_rtd_theme'
+html_logo = 'image/pyest_logo_white_text.png'
+html_favicon = 'image/pyest_logo_icon.png'
 html_static_path = ['_static']
 
 # -- Extension configuration -------------------------------------------------

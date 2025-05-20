@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Welcome to pyest's documentation!
+Welcome to PyEst's documentation!
 ================================
 
 .. image:: image/pyest_logo.png
@@ -11,7 +11,7 @@ Welcome to pyest's documentation!
    :align: center
    :alt: pyest logo
 
-pyest is a Python package for estimation and uncertainty quantification.
+PyEst is a Python package for adaptive Gaussian mixture state estimation.
 
 .. toctree::
    :maxdepth: 2
