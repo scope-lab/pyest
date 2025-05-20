@@ -808,6 +808,21 @@ def id_fos(p, jacobian_func, tol):
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
 
+    Notes
+    -----
+    Let :math:`\mathbf{G}` be the Jacobian of the nonlinear function. The first order
+    stretching (FOS) measure is given by
+
+    .. math::
+
+        \max_{|\mathbf{x}\|_{2} = 1} \|\mathbf{G}\mathbf{x}\|_{2}
+
+    References
+    ----------
+    .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
+           Informed Moment-Matching Gaussian Mixture Splitting,"
+           https://arxiv.org/abs/2412.00343, 2024
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
