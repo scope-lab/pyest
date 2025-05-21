@@ -152,7 +152,7 @@ def cartesian_to_polar_example():
     save_figure(example, 'truth', plt.gca(), plt.gcf(), w=3, h=3)
 
 
-    #################### GMM splitting based density propagation 
+    #################### GMM splitting based density propagation
     # Define the Cartesian to Polar conversion in sympy
     x, y = sp.symbols('x y')
     r = sp.sqrt(x**2 + y**2)
@@ -178,14 +178,14 @@ def cartesian_to_polar_example():
     split_tol = -np.inf
     # settings for the SADL and ALoDT based metrics
     diff_stat_det_sigma_pt_opts = SigmaPointOptions(alpha=0.5) # spread sigma points farther
-    
+
     # define parameters associated with each splitting method
     # two equally performing methods
-    recursive_split_args['variance'] = (split.id_max_variance_directions, split_tol)
+    recursive_split_args['variance'] = (split.id_variance, split_tol)
     recursive_split_args['WUSSOLC'] =  (
-        split.id_max_scaled_nonlinear_frob_directions_whitened, hessian_func, jacobian_func, split_tol)
+        split.id_wussolc, hessian_func, jacobian_func, split_tol)
     # a method that does not perform as well in this non-dynamical context
-    recursive_split_args['USFOS'] = (split.id_max_scaled_stretch_directions, jacobian_func, split_tol)
+    recursive_split_args['USFOS'] = (split.id_usfos, jacobian_func, split_tol)
 
     # plot the results for each splitting method
     for split_method, args in recursive_split_args.items():

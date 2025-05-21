@@ -188,27 +188,27 @@ def cislunar_example():
     split_tol = -np.inf
     # settings for the SADL and ALoDT based metrics
     diff_stat_det_sigma_pt_opts = SigmaPointOptions(alpha=0.5) # spread sigma points farther
-    
+
     # define parameters associated with each splitting method
-    recursive_split_args['variance'] = (split.id_max_variance_directions, split_tol)
-    recursive_split_args['USFOS'] = (split.id_max_scaled_stretch_directions, jacobian_func, split_tol)
-    recursive_split_args['WUSSADL'] = (split.id_max_diff_statistical_deterministic_linearization_directions_whitened, jacobian_func, propagation, diff_stat_det_sigma_pt_opts, split_tol)
-    recursive_split_args['WUSSOLC'] =  (split.id_max_scaled_nonlinear_frob_directions_whitened, hessian_func, jacobian_func, split_tol)
+    recursive_split_args['variance'] = (split.id_variance, split_tol)
+    recursive_split_args['USFOS'] = (split.id_usfos, jacobian_func, split_tol)
+    recursive_split_args['WUSSADL'] = (split.id_wussadl, jacobian_func, propagation, diff_stat_det_sigma_pt_opts, split_tol)
+    recursive_split_args['WUSSOLC'] = (split.id_wussolc, hessian_func, jacobian_func, split_tol)
 
     # additional splitting methods
     # uncomment these if desired
-    # recursive_split_args['ALoDT'] = (split.id_max_sigma_point_curvature, propagation, diff_stat_det_sigma_pt_opts, split_tol)
-    # recursive_split_args['FOS'] = (split.id_max_stretch_directions, jacobian_func, split_tol)
-    # recursive_split_args['SAFOS'] = (split.id_max_mean_stretch_directions, jacobian_func, split_tol)
-    # recursive_split_args['USFOS'] = (split.id_max_scaled_stretch_directions, jacobian_func, split_tol)
-    # recursive_split_args['SOS'] = (split.id_max_nonlinear_directions, hessian_func, jacobian_func, split_tol)
-    # recursive_split_args['SASOS'] = (split.id_max_mean_nonlinear_directions, hessian_func, split_tol)
-    # recursive_split_args['WSASOS'] = (split.id_max_mean_nonlinear_directions_whitened, hessian_func, jacobian_func, split_tol)
-    # recursive_split_args['WUSSOS'] = (split.id_max_scaled_nonlinear_directions, hessian_func, jacobian_func, split_tol)
-    # recursive_split_args['SOLC'] = (split.id_max_nonlinear_frob_directions, hessian_func, split_tol)
-    # recursive_split_args['USSOLC'] = (split.id_max_scaled_nonlinear_frob_directions, hessian_func, split_tol)
-    # recursive_split_args['SADL'] = (split.id_max_diff_statistical_deterministic_linearization_directions, jacobian_func, propagation, diff_stat_det_sigma_pt_opts, split_tol)
-    
+    # recursive_split_args['ALoDT'] = (split.id_max_alodt, propagation, diff_stat_det_sigma_pt_opts, split_tol)
+    # recursive_split_args['FOS'] = (split.id_fos, jacobian_func, split_tol)
+    # recursive_split_args['SAFOS'] = (split.id_safos, jacobian_func, split_tol)
+    # recursive_split_args['USFOS'] = (split.id_usfos, jacobian_func, split_tol)
+    # recursive_split_args['SOS'] = (split.id_sos, hessian_func, jacobian_func, split_tol)
+    # recursive_split_args['SASOS'] = (split.id_sasos, hessian_func, split_tol)
+    # recursive_split_args['WSASOS'] = (split.id_wsasos, hessian_func, jacobian_func, split_tol)
+    # recursive_split_args['WUSSOS'] = (split.id_wussos, hessian_func, jacobian_func, split_tol)
+    # recursive_split_args['SOLC'] = (split.id_solc, hessian_func, split_tol)
+    # recursive_split_args['USSOLC'] = (split.id_ussolc, hessian_func, split_tol)
+    # recursive_split_args['SADL'] = (split.id_sadl, jacobian_func, propagation, diff_stat_det_sigma_pt_opts, split_tol)
+
     # plot the resulting GMM densities propagated
     for split_method, args in recursive_split_args.items():
         p_split = split.recursive_split(p0, split_opts, *args)
@@ -217,9 +217,7 @@ def cislunar_example():
         for idx_pair in idx_pairs:
             _, XX, YY = plot_split_and_transformed(p_split, py, split_method, example, idx_pair, xf_lim=xlim[idx_pair], yf_lim =ylim[idx_pair])
 
-        fig, axs = plt.subplots(2, 3)
-        save_figure(example, split_method + "_marginal_cdfs", plt.gca(), plt.gcf())
-
+    plt.show()
 
 if __name__ == '__main__':
     # run the example
