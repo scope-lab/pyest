@@ -533,7 +533,7 @@ class KfdPredict(KalmanDiscretePredict):
         Qk = self.Q(*tv)
 
         # predict mean
-        m_prior =  Fk @ m_post
+        m_prior = Fk @ m_post
 
         # predict covariance
         P_prior = Fk @ P_post @ Fk.T + Mk @ Qk @ Mk.T
@@ -541,7 +541,83 @@ class KfdPredict(KalmanDiscretePredict):
         return m_prior, P_prior
 
     def _set_F(self, F):
-        if isinstance(F,np.ndarray):
+        if isinstance(F, np.ndarray):
+            self._F = convert_mat_to_fun(F)
+        else:
+            self._F = F
+
+    def _get_F(self):
+        return self._F
+
+    F = property(_get_F, _set_F)
+
+class EkfdPredict(KalmanDiscretePredict):
+
+    def __init__(self, f, F, Q, M=None):
+        """ Discrete Kalman Filter Prediction
+
+        Parameters
+        ----------
+        f : callable
+            discrete time nonlinear dynamics function of the form xk = f(tkm1, tk, xkm1)
+        F : callable
+            (nx,nx) is state transition matrix of the form
+            dx_k/dx_km1 = F(tkm1, tk, xkm1, *args).
+        Q : ndarray or callable
+            process noise covariance matrix of the form Q(tkm1, tkm). If provided
+            an ndarray instead, Q will automatically be recast as a callable.
+        M : (optional) ndarray or callable
+            process noise mapping matrix of the form M(tkm1, tkm). If provided
+            an ndarray instead, M will automatically be recast as a callable.
+        """
+        if F is None:
+            RuntimeError("gotta specify F")
+
+        self.F = F
+        self.f = f
+
+        super().__init__(Q=Q, M=M)
+
+    def predict(self, tv, m_post, P_post, S_post=NotImplemented, \
+        f_args=()):
+        """ perform Kalman filter prediction step
+
+        Parameters
+        ----------
+        tv : tuple
+            start and stop times given as tv=(tkm1, tk)
+        m_post : ndarray
+            (nx,) posterior mean at tkm1
+        P_post : ndarray
+            (nx,nx) posterior covariance at tkm1
+        f_args : (optional) tuple
+            tuple of arguments to be additionally passed to state transition
+            matrix F during prediction
+
+        Returns
+        -------
+        m_prior : ndarray
+            (nx,) prior mean at time tk
+        P_prior : ndarray
+            (nx,nx) prior covariance at tk
+        """
+
+        f_args = make_tuple(f_args)
+
+        Fk = self.F(*tv, m_post, *f_args)
+        Mk = self.M(*tv) # TODO: make Mk and Qk functions of m_post
+        Qk = self.Q(*tv)
+
+        # predict mean
+        m_prior = self.f(*tv, m_post, *f_args)
+
+        # predict covariance
+        P_prior = Fk @ P_post @ Fk.T + Mk @ Qk @ Mk.T
+
+        return m_prior, P_prior
+
+    def _set_F(self, F):
+        if isinstance(F, np.ndarray):
             self._F = convert_mat_to_fun(F)
         else:
             self._F = F

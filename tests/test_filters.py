@@ -54,6 +54,42 @@ def test_kalmandiscretepredict():
     npt.assert_array_equal(P_prior, P_des)
 
 
+def test_extendedkalmandiscretepredict():
+    """ test discrete time Extended Kalman filter prediction """
+    def F(tkm1, tk, xkm1): return np.array([[0, np.cos(xkm1[1])], [1, 0]])
+    def f(tkm1, tk, xkm1): return np.array([np.sin(xkm1[1]), xkm1[0]])
+    Q = 1e-4*np.eye(2)
+    kdp = filters.EkfdPredict(f, F, Q=Q)
+
+    mkm1 = np.array([30., 0.])
+    Pkm1 = np.array([[1., 0.5], [0.5, 3.4]])
+    m_prior, P_prior = kdp.predict(tv=(0, 1), m_post=mkm1, P_post=Pkm1)
+    G_exact = np.array([[0, 1],[1,0]])
+    P_des = G_exact@Pkm1@G_exact.T + Q
+
+    npt.assert_almost_equal(m_prior, np.array([0., 30.]), decimal=15)
+    npt.assert_almost_equal(
+        P_prior,
+        P_des,
+        decimal=15
+    )
+
+    # test usage of process noise mapping matrix
+    covariance_rotation = np.pi/8
+    cos_a = np.cos(covariance_rotation)
+    sin_a = np.sin(covariance_rotation)
+    M = np.array([
+        [cos_a, -sin_a],
+        [sin_a, cos_a],
+    ])
+
+    m_prior, P_prior = filters.EkfdPredict(f, F, Q=Q, M=M).predict(
+        tv=(0, 1), m_post=mkm1, P_post=Pkm1)
+    m_des, P_des = filters.EkfdPredict(f, F, Q=M@Q@M.T).predict(
+        tv=(0, 1), m_post=mkm1, P_post=Pkm1)
+    npt.assert_array_equal(m_prior, m_des)
+    npt.assert_array_equal(P_prior, P_des)
+
 def test_badunderweighting():
     R = np.eye(2)
     H = np.eye(2)
