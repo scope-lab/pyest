@@ -27,9 +27,19 @@ def l2_dist(p1, p2):
     t2 = np.sum([
         wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p1 for (wj, mj, Pj) in p2
     ])
-    t3 = np.sum([
-        wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p2 for (wj, mj, Pj) in p2
-    ])
+    t3 = 0.0
+    n = len(p2)
+    for i in range(n):
+        wi, mi, Pi = p2[i]
+        # Diagonal term
+        t3 += wi * wi * pygm.eval_mvnpdf(mi, mi, Pi + Pi)
+        for j in range(i + 1, n):
+            wj, mj, Pj = p2[j]
+            val = wi * wj * pygm.eval_mvnpdf(mi, mj, Pi + Pj)
+            t3 += 2 * val
+    #t3 = np.sum([
+    #    wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p2 for (wj, mj, Pj) in p2
+    #])
 
     l2 = t1 - 2*t2 + t3
     return l2
