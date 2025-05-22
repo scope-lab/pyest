@@ -53,3 +53,10 @@ Then,
 cd docs
 make html
 ```
+
+If you are using Windows powershell and don't have `make` installed, you can
+alternatively run
+```
+cd docs
+sphinx-build -b html . _build
+```
