@@ -14,6 +14,33 @@ from scipy.linalg import cholesky
 from pyest.linalg import triangularize, cholesky_from_sqrt_precision
 
 from huggingface_hub import hf_hub_download
+
+__all__ = [
+    'GaussianMixture',
+    'GaussSplitOptions',
+    'Covariance',
+    'multivariate_normal',
+    'fit_1d_uniform',
+    'gm_fit_1d',
+    'equal_weights',
+    'eval_gmpdf',
+    'eval_gmpdfchol',
+    'eval_mvnpdf',
+    'eval_mvnpdfchol',
+    'v_eval_mvnpdf',
+    'v_eval_mvnpdfchol',
+    'integral_gauss_product',
+    'integral_gauss_product_chol',
+    'marginal_2d',
+    'marginal_nd',
+    'comp_bounds',
+    'bounds',
+    'gm_pdf_2d',
+    'sigma_contour',
+    'distribute_mean_centers',
+    'optimal_homoscedastic_std',
+]
+
 sigmavals = None
 
 
@@ -58,7 +85,7 @@ def __check_num_comp(L):
 
 def find_gm_res(stdmax, width=1):
     """find necessary number of components needed to meet comp. std max"""
-    global sigmavals # noqa: F824
+    global sigmavals  # noqa: F824
     __check_width(width)
     if sigmavals is None:
         sigmavals = load_1d_unifit_sigmavals()
@@ -70,7 +97,7 @@ def find_gm_res(stdmax, width=1):
 
 def optimal_homoscedastic_std(L, width=1):
     """generates optimal std for an L component GM under homoscedasticity constraint"""
-    global sigmavals # noqa: F824
+    global sigmavals  # noqa: F824
     __check_width(width)
     __check_num_comp(L)
 
@@ -135,7 +162,7 @@ def fit_weights_to_f_1d(xvals, fvals, m, std):
 
 
 def gm_fit_1d(xvals, pvals, support=None, stdmax=None, L=None):
-    global sigmavals # noqa: F824
+    global sigmavals  # noqa: F824
 
     if support is None:
         support = (min(xvals), max(xvals))
