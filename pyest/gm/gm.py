@@ -671,7 +671,12 @@ class GaussianMixture(object):
     def set_m(self, m):
         self._m = np.atleast_2d(m)
 
-    def get_P(self):
+    def get_P(self, ind=None):
+        if ind is not None:
+            if np.isscalar(ind):
+                return self._cov[ind].covariance
+            else:
+                return np.array([P.covariance for P in np.array(self._cov)[ind]])
         return np.array([P.covariance for P in self._cov])
 
     def set_P(self, P):
@@ -771,7 +776,7 @@ class GaussianMixture(object):
         self._msize = msize
 
     def get_comp(self, ind):
-        return self.w[ind], self.m[ind], self.P[ind]
+        return self.w[ind], self.m[ind], self.get_P(ind)
 
     def eval(self, x):
         """ evaluate gm at n_eval points stored in numpy array x
