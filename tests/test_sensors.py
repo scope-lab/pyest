@@ -3,7 +3,7 @@ import numpy as np
 import numpy.testing as npt
 import pytest
 
-from pyest.sensors.FieldOfView import EllipticalFieldOfView
+from pyest.sensors.FieldOfView import EllipticalFieldOfView, ConvexPolyhedralFieldOfView
 
 
 def rot_matrix(angle):
@@ -11,6 +11,11 @@ def rot_matrix(angle):
     return np.array([[np.cos(angle), np.sin(angle)],
                      [-np.sin(angle), np.cos(angle)]])
 
+def rot_matrix_3d(angle):
+    """ rotation matrix about z-axis """
+    return np.array([[np.cos(angle), np.sin(angle), 0],
+                     [-np.sin(angle), np.cos(angle), 0],
+                     [0, 0, 1]])
 
 def test_PolygonalFieldOfView():
     """ test polygonal field of view """
@@ -129,6 +134,35 @@ def test_EllipticalFieldOfView():
     assert(fov.contains(right))
     assert(all(fov.contains([left, top, bottom])))
     assert(~fov.contains(center+[width, height]))
+
+def test_ConvexPolyhedralFieldOfView():
+    """ test convex polyhedral field of view """
+    # create a rectangular prism
+    verts = [(x,y,z) for x in (0,1) for y in (0,2) for z in (0,3)]
+    fov = ConvexPolyhedralFieldOfView(verts)
+    # test single point case
+    assert(fov.contains([0, 0, 0]))
+    # test multiple point case
+    npt.assert_array_equal(
+        fov.contains([[0.1, 1.4, 2.6], [1.6, 0.1, 0.1]]),
+        [True, False]
+    )
+
+    # test transformation
+    A = np.diag([1,2,3])
+
+    des_verts = np.array([[ 0,  1,  2],
+       [ 0,  1, 11],
+       [ 0,  5,  2],
+       [ 0,  5, 11],
+       [ 1,  1,  2],
+       [ 1,  1, 11],
+       [ 1,  5,  2],
+       [ 1,  5, 11]])
+
+    new_fov = fov.apply_linear_transformation(A, post_shift=np.arange(3))
+    npt.assert_array_equal(new_fov.verts, des_verts)
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

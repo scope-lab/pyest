@@ -5,6 +5,7 @@ import numpy as np
 import numpy.testing as npt
 import pyest.gm as gm
 from pyest.sensors.defaults import default_poly_fov
+from pyest.sensors import ConvexPolyhedralFieldOfView
 from pyest.utils import fail
 import pytest
 
@@ -180,6 +181,7 @@ def test_eval_gmpdfchol():
 
     # test failure case where the dimension of samples is wrong
     fail(gm.eval_gmpdf, ValueError, np.vstack((x1, x2, x3)).T, w, m, S)
+
 
 def test_integral_gauss_product_chol():
     m1 = np.array([1, 2])
@@ -433,6 +435,49 @@ def test_split_for_fov():
     int_outside_fov = np.sum(p_split.w[~comp_mask_in_fov])
     assert(np.abs(true_int_outside_fov - int_outside_fov) < 0.02)
 
+    # -------test 3D fov--------
+    fov2d = default_poly_fov()
+    # construct a 3D fov by adding a z coordinate
+    # choose z limits of FoV to be +/- 1 sigma of the distribution
+    z_ub = np.sqrt(p.cov()[2, 2])
+    z_lb = -z_ub
+    verts_3d = np.array([np.hstack((v,z)) for v in fov2d.verts for z in (z_lb, z_ub)])
+    fov3d = ConvexPolyhedralFieldOfView(verts_3d)
+    split_opts = gm.GaussSplitOptions(L=5, lam=1e-3, state_idxs=np.arange(3), min_weight=0.001)
+    p_split = gm.split_for_fov(p, fov3d, split_opts)
+    split_err = gm.l2_dist(p, p_split)
+    assert(split_err < 1e-3)
+
+    # check that the integral of pdf outside fov matches split
+    p_lb = np.min(p.comp_bounds(sigma_mult=3)[0],axis=0)[:3]
+    p_ub = np.max(p.comp_bounds(sigma_mult=3)[1],axis=0)[:3]
+    XX,YY,ZZ = np.meshgrid(*[np.linspace(lb,ub,400) for lb,ub in zip(p_lb,p_ub)], indexing='ij')
+    pp = p.marginal_nd((0,1,2))(np.vstack((XX.flatten(), YY.flatten(), ZZ.flatten())).T).reshape(XX.shape)
+
+    box_area = np.prod(p_ub - p_lb)
+    # compute the integral of the density over the box
+    int_inside_box = box_area*np.mean(pp)
+    # find which points are inside fov
+    in_mask = fov3d.contains(np.vstack((XX.flatten(), YY.flatten(), ZZ.flatten())).T)
+    in_mask_tensor = np.reshape(in_mask, XX.shape)
+    # set pdf evaluations inside fov to zero
+    pp[in_mask_tensor] = 0
+    int_outside_fov_inside_box = box_area*np.mean(pp)
+    true_int_outside_fov = (1 - int_inside_box) + int_outside_fov_inside_box
+
+    # compute the sum of the weights of components outside the FoV
+    comp_mask_in_fov = np.array(fov3d.contains(p_split.m[:, :3]))
+    int_outside_fov = np.sum(p_split.w[~comp_mask_in_fov])
+    assert(np.abs(true_int_outside_fov - int_outside_fov) < 0.02)
+    # import matplotlib.pyplot as plt
+    # fig = plt.figure()
+    # ax = fig.add_subplot(111)
+    # p_oofov = gm.GaussianMixture(p_split.w[~comp_mask_in_fov], p_split.m[~comp_mask_in_fov], p_split.P[~comp_mask_in_fov])
+    # pp, XX, YY = p_oofov.pdf_2d(dimensions=(0, 1), res=400)
+    # ax.contourf(XX, YY, pp, 100)
+    # ax.plot(fov3d.verts[:, 0], fov3d.verts[:, 1], 'k', lw=2)
+    # ax.plot(p_split.m[~comp_mask_in_fov][:, 0], p_split.m[~comp_mask_in_fov][:, 1], 'ro', markersize=5)
+    # plt.show()
 
 def test_merge():
     p = gm.defaults.default_gm()

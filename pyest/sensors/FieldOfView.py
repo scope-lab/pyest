@@ -4,7 +4,7 @@ from abc import ABC, abstractmethod
 from shapely.geometry import Point
 from shapely.geometry.polygon import Polygon
 from shapely.vectorized import contains as shapelycontains
-
+from scipy.spatial import Delaunay
 
 class FieldOfView(ABC):
 
@@ -315,3 +315,42 @@ class EllipticalFieldOfView(FieldOfView):
 
     def lb(self):
         return self._lb
+
+class ConvexPolyhedralFieldOfView(FieldOfView):
+    """ 3D convex polyhedral field-of-view
+
+    Parameters
+    ----------
+    verts : ndarray
+        (n,3) vertices of polyhedron
+
+    """
+    def __init__(self, verts):
+        self.verts = verts
+        self._center = None
+        self._hull = Delaunay(verts)
+        self._lb = np.min(verts,axis=0)
+        self._ub = np.max(verts,axis=0)
+
+    @property
+    def lb(self):
+        return self._lb
+
+    @property
+    def ub(self):
+        return self._ub
+
+    def contains(self, pts):
+        return self._hull.find_simplex(pts) >= 0
+
+    def apply_linear_transformation(self, A, pre_shift=None, post_shift=None):
+
+        if pre_shift is None:
+            pre_shift = np.zeros(3)
+        if post_shift is None:
+            post_shift = np.zeros(3)
+
+        new_verts = (self.verts + pre_shift)@A.T + post_shift
+
+        return ConvexPolyhedralFieldOfView(new_verts)
+

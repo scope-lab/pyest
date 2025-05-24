@@ -537,6 +537,140 @@ def identify_split_components(p, fovs, split_opts):
 
     return split_mask, split_dir
 
+def identify_split_components_3d_fov(p, fovs, split_opts):
+    """Identify what components of a GM should be split for a set of 3D FoVs
+
+    Parameters
+    ----------
+    p: GaussianMixture
+      Gaussian mixture to split
+    fovs: FieldOfView or list
+      FoV, the geometry of which determines which components to split
+    split_opts:  GaussSplitOptions
+        splitting options
+
+    Returns
+    -------
+    split_mask: ndarray
+      boolean array, where true elements denote a component that should be
+      split
+    split_dir: ndarray
+      (nC, nX) array where each row indicates the best direction to split
+      along. Non-positional state elements are left as zero
+
+    """
+
+    pos_idxs = split_opts.state_idxs
+    assert len(pos_idxs) == 3, 'split_opts.state_idxs must contain 3 unique indices'
+
+    assert split_opts.recurse_depth > 0
+
+    split_dir = np.zeros((len(p), p.dim))
+    split_mask = np.array(len(p) * [False])
+
+    if not isinstance(fovs, list):
+        fovs = [fovs]
+
+    # generate the grid of test points
+    # TODO: check case where FOV is wholly contained with grid bounds, but
+    # no grid points are within FOV.
+    L_grid = 15
+    zmin = -2
+    zmax = -zmin
+    mt = np.linspace(zmin, zmax, L_grid)
+    XX, YY, ZZ = np.meshgrid(mt, mt, mt, indexing='ij')
+    test_pts = np.vstack((XX.flatten(), YY.flatten(), ZZ.flatten())).T
+    in_sphere_mask = XX**2 + YY**2 + ZZ**2 <= zmax**2 + 1e-10
+    num_pts_in_slice = np.sum(in_sphere_mask, axis=(0,1))
+
+    gm_lb, gm_ub = p.comp_bounds(sigma_mult=3)
+
+    for i, (w, m, P) in enumerate(p):
+        # if weight is below threshold, don't split and move on
+        if w < split_opts.min_weight:
+            split_mask[i] = False
+            continue
+        # compute eigenvectors and eigenvalues. Eigenvectors and eigenvalues
+        # are used to perform a change of variables so that the component
+        # density is the standard Gaussian density with zero mean and unit
+        # covariance.
+        eigvals, V = np.linalg.eigh(P[pos_idxs[:, np.newaxis], pos_idxs])
+
+        # compute the corners of the fov relative to the mean, then rotate them
+        # into eigenspace and scale them by the variance
+
+        multifov_intact_yz_plane = np.full(L_grid, True)
+        multifov_intact_xz_plane = np.full(L_grid, True)
+        multifov_intact_xy_plane = np.full(L_grid, True)
+        # TODO: for each component, maintain list of which FoVs are irrelevant and skip
+        for fov in fovs:
+            if any(fov.ub < gm_lb[i, pos_idxs]) or any(fov.lb > gm_ub[i, pos_idxs]):
+                split_mask[i] = False
+                continue
+
+            fov_rot_scaled = fov.apply_linear_transformation(
+                np.diag(eigvals**-0.5) @ V.T, pre_shift=-m[pos_idxs]
+            )
+            # for each fov, find out which slices are intact, i.e.
+            # totally contained within the fov or totally excluded
+            in_mask = np.array(fov_rot_scaled.contains(test_pts))
+            in_mask_tensor = in_mask.reshape(XX.shape)
+            in_mask_tensor[~in_sphere_mask] = False  # ignore points outside the sphere
+
+            fov_intact_xy_plane, fov_intact_xz_plane, fov_intact_yz_plane = find_intact_slices(
+                in_mask_tensor, num_pts_in_slice
+            )
+
+            multifov_intact_xy_plane = np.logical_and(multifov_intact_xy_plane, fov_intact_xy_plane)
+            multifov_intact_xz_plane = np.logical_and(multifov_intact_xz_plane, fov_intact_xz_plane)
+            multifov_intact_yz_plane = np.logical_and(multifov_intact_yz_plane, fov_intact_yz_plane)
+
+        if np.all(multifov_intact_xy_plane) and np.all(multifov_intact_xz_plane) and np.all(multifov_intact_yz_plane):
+            split_mask[i] = False
+            continue
+        else:
+            split_mask[i] = True
+
+        multifov_intact_dims = np.array([np.sum(multifov_intact_yz_plane),
+                                         np.sum(multifov_intact_xz_plane),
+                                         np.sum(multifov_intact_xy_plane)])
+
+        ## plot the collocation points, shading according to whether they are in the FoV
+        #import matplotlib.pyplot as plt
+        #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+        #fig = plt.figure()
+        #ax = fig.add_subplot(111, projection='3d')
+        #ax.set_xlabel('v1')
+        #ax.set_ylabel('v2')
+        #ax.set_zlabel('v3')
+        #ax.scatter(XX[in_sphere_mask], YY[in_sphere_mask], ZZ[in_sphere_mask], c=in_mask_tensor[in_sphere_mask])
+        ## plot the 3D polyhedral FoV geometry. The polehdron is represented by a scipy.spatial hull
+        ## Plot the tetrahedra
+        #for simplex in fov_rot_scaled._hull.simplices:
+        #    # Each simplex is a tetrahedron; plot its faces
+        #    for j in range(4):
+        #        face = np.delete(simplex, j)
+        #        poly = fov_rot_scaled.verts[face]
+        #        ax.add_collection3d(Poly3DCollection([poly], alpha=0.2, color='cyan'))
+
+
+
+        # the position split direction is chosen as the direction that is
+        # orthogonal to the most grid planes of consistent inclusion/exclusion.
+        slice_dim = np.argmax(multifov_intact_dims)
+        # check if there are dimensions with equally intact slices
+        if np.sum(multifov_intact_dims[slice_dim] == multifov_intact_dims)>1:
+            equally_intact_dims = np.where(multifov_intact_dims[slice_dim] == multifov_intact_dims)[0]
+            # split along equally intact direction with largest variance
+            best_dir_idx = equally_intact_dims[0] if eigvals[equally_intact_dims[0]] >= eigvals[equally_intact_dims[1]] else equally_intact_dims[1]
+        else:
+            best_dir_idx = slice_dim
+
+
+        split_dir[i, pos_idxs] = deepcopy(V[:, best_dir_idx])
+        split_dir[i] = P @ split_dir[i]
+
+    return split_mask, split_dir
 
 def group_preserving_split_dir(intact_rows, intact_cols, eigvals):
     """choose direction for FoV splitting to minimize number of downstream
@@ -581,6 +715,44 @@ def group_preserving_split_dir(intact_rows, intact_cols, eigvals):
     return best_dir_idx
 
 
+def find_intact_slices(in_mask_tensor, num_pts_in_slice):
+    """find slices that are totally included/excluded
+
+    Parameters
+    ----------
+    in_mask_tensor: ndarray
+        (L,L,L) boolean mask indicating point-wise inclusion by the FoV, where
+        L is the number of equally spaced points per dimension
+    num_pts_in_slice: int
+        (L,) number of valid collocation points in each slice
+
+    Returns
+    -------
+    intact_xy_plane: ndarray
+        (L,) logical, where intact_xy[i]=True indicates that all grid points
+        in the ith horizontal slice [i,:,:] are either entirely included in the FoV or entirely
+        excluded
+    intact_xz_plane: ndarray
+        (L,) logical, where intact_xz_plane[j]=True indicates that all grid points
+        in the jth lateral slice [:,j,:] are either entirely included in the FoV or entirely
+        excluded
+    intact_yz_plane: ndarray
+        (L,) logical, where intact_xz_plane[k]=True indicates that all grid points
+        in the kth frontal slice [:,:,k] are either entirely included in the FoV or entirely
+        excluded
+    """
+    assert in_mask_tensor.shape[0] == in_mask_tensor.shape[1]
+    assert in_mask_tensor.shape[1] == in_mask_tensor.shape[2]
+
+    intact_xy_plane = np.sum(in_mask_tensor, axis=(0,1))
+    intact_xy_plane = np.logical_or(intact_xy_plane == num_pts_in_slice, intact_xy_plane == 0)
+    intact_xz_plane = np.sum(in_mask_tensor, axis=(0,2))
+    intact_xz_plane = np.logical_or(intact_xz_plane == num_pts_in_slice, intact_xz_plane == 0)
+    intact_yz_plane = np.sum(in_mask_tensor, axis=(1,2))
+    intact_yz_plane = np.logical_or(intact_yz_plane == num_pts_in_slice, intact_yz_plane == 0)
+    return intact_xy_plane, intact_xz_plane, intact_yz_plane
+
+
 def find_intact_rows_cols(in_mask_mat, num_pts_in_slice):
     """find rows and columns that are totally included/excluded
 
@@ -614,7 +786,7 @@ def find_intact_rows_cols(in_mask_mat, num_pts_in_slice):
 
 def split_for_fov(p, fovs, split_opts):
     """
-    SPLIT_FOR_FOV Splits Gaussians that are close to FOV edges
+    SPLIT_FOR_FOV Splits Gaussians that are close to FoV edges
 
         Assumes that first two dimensions correspond to the same coordinates
         that the FOV is expressed in
@@ -624,7 +796,7 @@ def split_for_fov(p, fovs, split_opts):
         p: GaussianMixture
             mixture to be split
         fovs: list
-            PolygonalFieldOfView, where the boundaries are used to determine where
+            FieldOfView, where the boundaries are used to determine where
             to split the distribution
         split_opts:  GaussSplitOptions
             splitting options
@@ -640,7 +812,12 @@ def split_for_fov(p, fovs, split_opts):
     if split_opts.recurse_depth == 0:
         return p
     # identify the components that need split and compute the split direction
-    split_mask, split_dir = identify_split_components(p, fovs, split_opts)
+    if len(split_opts.state_idxs) == 2:
+        split_mask, split_dir = identify_split_components(p, fovs, split_opts)
+    elif len(split_opts.state_idxs) == 3:
+        split_mask, split_dir = identify_split_components_3d_fov(p, fovs, split_opts)
+    else:
+        raise ValueError("split_opts.state_idxs must contain 2 or 3 unique indices")
     n2split = np.sum(split_mask)
     if n2split == 0:
         return p
