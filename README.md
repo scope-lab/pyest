@@ -63,23 +63,23 @@ plt.show()
 ### OS X (zsh)
 To install, run
 ```shell
-pip install .
+pip install pyest
 ```
 
 To install packages needed for running the examples, run
  ```shell
-pip install '.[examples]'
+pip install 'pyest[examples]'
 ```
 
 ### OS X (bash), Windows (cmd prompt)
 To install, run
 ```shell
-pip install .
+pip install pyest
 ```
 
 To install packages needed for running the examples, run
  ```shell
-pip install .[examples]
+pip install pyest[examples]
 ```
 
 
