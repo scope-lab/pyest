@@ -251,13 +251,15 @@ def optimize_gauss_split(L, lam):
         return obj_l2_gauss_split(x[0], x[1], x[2:], L, lam)
 
     x_opt = sciopt.minimize(
-        fun, x0, constraints=[weight_constr], bounds=bounds, options={"ftol": 1e-17}
+        fun, x0, constraints=[
+            weight_constr], bounds=bounds, options={"ftol": 1e-17}
     )
     eps_opt, sig_opt, *w_half_opt = x_opt.x
     if not x_opt.success:
         warnings.warn("Optimization did not converge: " + x_opt.message)
 
-    m_opt = np.atleast_2d(eps_opt * (np.arange(-(L - 1) / 2, (L - 1) / 2 + 1, 1))).T
+    m_opt = np.atleast_2d(
+        eps_opt * (np.arange(-(L - 1) / 2, (L - 1) / 2 + 1, 1))).T
     S_opt = np.atleast_3d(L * [sig_opt]).reshape((L, 1, 1))
     w_opt = _reflect_weights(w_half_opt, L)
     return GaussianMixture(w=w_opt, m=m_opt, cov=S_opt, cov_type="cholesky")
@@ -353,11 +355,13 @@ def split_gaussian(w, m, cov, split_options, cov_type="full", direction=None):
         m_split = np.array([m + std_u * m1d * direction for m1d in gm_1d.m])
         # compute downdate factor
         a = std_u * np.sqrt(np.dot(gm_1d.w, gm_1d.m**2)) * direction
-        S_bar = choldowndate(S.T, a).T  # downdate to find split cholesky factor
+        # downdate to find split cholesky factor
+        S_bar = choldowndate(S.T, a).T
         assert np.all(np.diag(S_bar) >= 0)
         w_split = w * gm_1d.w
         S_split = np.tile(S_bar, (split_options.L, 1, 1))
-        p_split = GaussianMixture(w_split, m_split, S_split, cov_type="cholesky")
+        p_split = GaussianMixture(
+            w_split, m_split, S_split, cov_type="cholesky")
         return p_split
 
     # spectral splitting
@@ -513,13 +517,16 @@ def identify_split_components(p, fovs, split_opts):
             # totally contained within the fov or totally excluded
             in_mask = np.array(fov_rot_scaled.contains(test_pts))
             in_mask_mat = in_mask.reshape(XX.shape)
-            in_mask_mat[~in_sphere_mask] = False  # ignore points outside the sphere
+            # ignore points outside the sphere
+            in_mask_mat[~in_sphere_mask] = False
             fov_intact_rows, fov_intact_cols = find_intact_rows_cols(
                 in_mask_mat, num_pts_in_slice
             )
 
-            multifov_intact_rows = np.logical_and(multifov_intact_rows, fov_intact_rows)
-            multifov_intact_cols = np.logical_and(multifov_intact_cols, fov_intact_cols)
+            multifov_intact_rows = np.logical_and(
+                multifov_intact_rows, fov_intact_rows)
+            multifov_intact_cols = np.logical_and(
+                multifov_intact_cols, fov_intact_cols)
 
         if np.all(multifov_intact_rows) and np.all(multifov_intact_cols):
             split_mask[i] = False
@@ -527,7 +534,6 @@ def identify_split_components(p, fovs, split_opts):
         else:
             split_mask[i] = True
 
-        # TODO: generalize for 3D FOV
         best_dir_idx = group_preserving_split_dir(
             multifov_intact_rows, multifov_intact_cols, eigvals
         )
@@ -536,6 +542,7 @@ def identify_split_components(p, fovs, split_opts):
         split_dir[i] = P @ split_dir[i]
 
     return split_mask, split_dir
+
 
 def identify_split_components_3d_fov(p, fovs, split_opts):
     """Identify what components of a GM should be split for a set of 3D FoVs
@@ -561,7 +568,8 @@ def identify_split_components_3d_fov(p, fovs, split_opts):
     """
 
     pos_idxs = split_opts.state_idxs
-    assert len(pos_idxs) == 3, 'split_opts.state_idxs must contain 3 unique indices'
+    assert len(
+        pos_idxs) == 3, 'split_opts.state_idxs must contain 3 unique indices'
 
     assert split_opts.recurse_depth > 0
 
@@ -581,7 +589,7 @@ def identify_split_components_3d_fov(p, fovs, split_opts):
     XX, YY, ZZ = np.meshgrid(mt, mt, mt, indexing='ij')
     test_pts = np.vstack((XX.flatten(), YY.flatten(), ZZ.flatten())).T
     in_sphere_mask = XX**2 + YY**2 + ZZ**2 <= zmax**2 + 1e-10
-    num_pts_in_slice = np.sum(in_sphere_mask, axis=(0,1))
+    num_pts_in_slice = np.sum(in_sphere_mask, axis=(0, 1))
 
     gm_lb, gm_ub = p.comp_bounds(sigma_mult=3)
 
@@ -615,15 +623,19 @@ def identify_split_components_3d_fov(p, fovs, split_opts):
             # totally contained within the fov or totally excluded
             in_mask = np.array(fov_rot_scaled.contains(test_pts))
             in_mask_tensor = in_mask.reshape(XX.shape)
-            in_mask_tensor[~in_sphere_mask] = False  # ignore points outside the sphere
+            # ignore points outside the sphere
+            in_mask_tensor[~in_sphere_mask] = False
 
             fov_intact_xy_plane, fov_intact_xz_plane, fov_intact_yz_plane = find_intact_slices(
                 in_mask_tensor, num_pts_in_slice
             )
 
-            multifov_intact_xy_plane = np.logical_and(multifov_intact_xy_plane, fov_intact_xy_plane)
-            multifov_intact_xz_plane = np.logical_and(multifov_intact_xz_plane, fov_intact_xz_plane)
-            multifov_intact_yz_plane = np.logical_and(multifov_intact_yz_plane, fov_intact_yz_plane)
+            multifov_intact_xy_plane = np.logical_and(
+                multifov_intact_xy_plane, fov_intact_xy_plane)
+            multifov_intact_xz_plane = np.logical_and(
+                multifov_intact_xz_plane, fov_intact_xz_plane)
+            multifov_intact_yz_plane = np.logical_and(
+                multifov_intact_yz_plane, fov_intact_yz_plane)
 
         if np.all(multifov_intact_xy_plane) and np.all(multifov_intact_xz_plane) and np.all(multifov_intact_yz_plane):
             split_mask[i] = False
@@ -635,42 +647,42 @@ def identify_split_components_3d_fov(p, fovs, split_opts):
                                          np.sum(multifov_intact_xz_plane),
                                          np.sum(multifov_intact_xy_plane)])
 
-        ## plot the collocation points, shading according to whether they are in the FoV
-        #import matplotlib.pyplot as plt
-        #from mpl_toolkits.mplot3d.art3d import Poly3DCollection
-        #fig = plt.figure()
-        #ax = fig.add_subplot(111, projection='3d')
-        #ax.set_xlabel('v1')
-        #ax.set_ylabel('v2')
-        #ax.set_zlabel('v3')
-        #ax.scatter(XX[in_sphere_mask], YY[in_sphere_mask], ZZ[in_sphere_mask], c=in_mask_tensor[in_sphere_mask])
-        ## plot the 3D polyhedral FoV geometry. The polehdron is represented by a scipy.spatial hull
-        ## Plot the tetrahedra
-        #for simplex in fov_rot_scaled._hull.simplices:
+        # plot the collocation points, shading according to whether they are in the FoV
+        # import matplotlib.pyplot as plt
+        # from mpl_toolkits.mplot3d.art3d import Poly3DCollection
+        # fig = plt.figure()
+        # ax = fig.add_subplot(111, projection='3d')
+        # ax.set_xlabel('v1')
+        # ax.set_ylabel('v2')
+        # ax.set_zlabel('v3')
+        # ax.scatter(XX[in_sphere_mask], YY[in_sphere_mask], ZZ[in_sphere_mask], c=in_mask_tensor[in_sphere_mask])
+        # plot the 3D polyhedral FoV geometry. The polehdron is represented by a scipy.spatial hull
+        # Plot the tetrahedra
+        # for simplex in fov_rot_scaled._hull.simplices:
         #    # Each simplex is a tetrahedron; plot its faces
         #    for j in range(4):
         #        face = np.delete(simplex, j)
         #        poly = fov_rot_scaled.verts[face]
         #        ax.add_collection3d(Poly3DCollection([poly], alpha=0.2, color='cyan'))
 
-
-
         # the position split direction is chosen as the direction that is
         # orthogonal to the most grid planes of consistent inclusion/exclusion.
         slice_dim = np.argmax(multifov_intact_dims)
         # check if there are dimensions with equally intact slices
-        if np.sum(multifov_intact_dims[slice_dim] == multifov_intact_dims)>1:
-            equally_intact_dims = np.where(multifov_intact_dims[slice_dim] == multifov_intact_dims)[0]
+        if np.sum(multifov_intact_dims[slice_dim] == multifov_intact_dims) > 1:
+            equally_intact_dims = np.where(
+                multifov_intact_dims[slice_dim] == multifov_intact_dims)[0]
             # split along equally intact direction with largest variance
-            best_dir_idx = equally_intact_dims[0] if eigvals[equally_intact_dims[0]] >= eigvals[equally_intact_dims[1]] else equally_intact_dims[1]
+            best_dir_idx = equally_intact_dims[0] if eigvals[equally_intact_dims[0]
+                                                             ] >= eigvals[equally_intact_dims[1]] else equally_intact_dims[1]
         else:
             best_dir_idx = slice_dim
-
 
         split_dir[i, pos_idxs] = deepcopy(V[:, best_dir_idx])
         split_dir[i] = P @ split_dir[i]
 
     return split_mask, split_dir
+
 
 def group_preserving_split_dir(intact_rows, intact_cols, eigvals):
     """choose direction for FoV splitting to minimize number of downstream
@@ -744,12 +756,15 @@ def find_intact_slices(in_mask_tensor, num_pts_in_slice):
     assert in_mask_tensor.shape[0] == in_mask_tensor.shape[1]
     assert in_mask_tensor.shape[1] == in_mask_tensor.shape[2]
 
-    intact_xy_plane = np.sum(in_mask_tensor, axis=(0,1))
-    intact_xy_plane = np.logical_or(intact_xy_plane == num_pts_in_slice, intact_xy_plane == 0)
-    intact_xz_plane = np.sum(in_mask_tensor, axis=(0,2))
-    intact_xz_plane = np.logical_or(intact_xz_plane == num_pts_in_slice, intact_xz_plane == 0)
-    intact_yz_plane = np.sum(in_mask_tensor, axis=(1,2))
-    intact_yz_plane = np.logical_or(intact_yz_plane == num_pts_in_slice, intact_yz_plane == 0)
+    intact_xy_plane = np.sum(in_mask_tensor, axis=(0, 1))
+    intact_xy_plane = np.logical_or(
+        intact_xy_plane == num_pts_in_slice, intact_xy_plane == 0)
+    intact_xz_plane = np.sum(in_mask_tensor, axis=(0, 2))
+    intact_xz_plane = np.logical_or(
+        intact_xz_plane == num_pts_in_slice, intact_xz_plane == 0)
+    intact_yz_plane = np.sum(in_mask_tensor, axis=(1, 2))
+    intact_yz_plane = np.logical_or(
+        intact_yz_plane == num_pts_in_slice, intact_yz_plane == 0)
     return intact_xy_plane, intact_xz_plane, intact_yz_plane
 
 
@@ -778,9 +793,11 @@ def find_intact_rows_cols(in_mask_mat, num_pts_in_slice):
     assert in_mask_mat.shape[0] == in_mask_mat.shape[1]
     intact_cols = np.sum(in_mask_mat, axis=0)
 
-    intact_cols = np.logical_or(intact_cols == num_pts_in_slice, intact_cols == 0)
+    intact_cols = np.logical_or(
+        intact_cols == num_pts_in_slice, intact_cols == 0)
     intact_rows = np.sum(in_mask_mat, axis=1)
-    intact_rows = np.logical_or(intact_rows == num_pts_in_slice, intact_rows == 0)
+    intact_rows = np.logical_or(
+        intact_rows == num_pts_in_slice, intact_rows == 0)
     return intact_rows, intact_cols
 
 
@@ -815,9 +832,11 @@ def split_for_fov(p, fovs, split_opts):
     if len(split_opts.state_idxs) == 2:
         split_mask, split_dir = identify_split_components(p, fovs, split_opts)
     elif len(split_opts.state_idxs) == 3:
-        split_mask, split_dir = identify_split_components_3d_fov(p, fovs, split_opts)
+        split_mask, split_dir = identify_split_components_3d_fov(
+            p, fovs, split_opts)
     else:
-        raise ValueError("split_opts.state_idxs must contain 2 or 3 unique indices")
+        raise ValueError(
+            "split_opts.state_idxs must contain 2 or 3 unique indices")
     n2split = np.sum(split_mask)
     if n2split == 0:
         return p
@@ -845,10 +864,10 @@ def split_for_fov(p, fovs, split_opts):
         pi_split = split_gaussian(wi, mi, Pi, split_opts, "full", diri)
 
         assert np.all(np.isreal(pi_split.m))
-        w_split[idx : idx + split_opts.L] = pi_split.w
-        m_split[idx : idx + split_opts.L] = pi_split.m
-        P_split[idx : idx + split_opts.L] = pi_split.P
-        S_split[idx : idx + split_opts.L] = pi_split.Seig
+        w_split[idx: idx + split_opts.L] = pi_split.w
+        m_split[idx: idx + split_opts.L] = pi_split.m
+        P_split[idx: idx + split_opts.L] = pi_split.P
+        S_split[idx: idx + split_opts.L] = pi_split.Seig
         idx += split_opts.L
 
     p_split = GaussianMixture(w_split, m_split, P_split, Seig=S_split)
@@ -915,9 +934,9 @@ def recursive_split(p, split_opts, identify_split_components, *args):
         pi_split = split_gaussian(wi, mi, Si, split_opts, "cholesky", diri)
 
         assert np.all(np.isreal(pi_split.m))
-        w_split[idx : idx + split_opts.L] = pi_split.w
-        m_split[idx : idx + split_opts.L] = pi_split.m
-        S_split[idx : idx + split_opts.L] = pi_split.Schol
+        w_split[idx: idx + split_opts.L] = pi_split.w
+        m_split[idx: idx + split_opts.L] = pi_split.m
+        S_split[idx: idx + split_opts.L] = pi_split.Schol
         idx += split_opts.L
 
     p_split = GaussianMixture(w_split, m_split, S_split, "cholesky")
@@ -1205,9 +1224,11 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
         # find square root factor of precision matrix Pf^-1 = U@U^T
         U = _PSD(Pf).U
         # output-whitened wcovariance adjusted measurement partial derivative tensor
-        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T, mpdt, p.Schol[i], p.Schol[i])
+        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T,
+                             mpdt, p.Schol[i], p.Schol[i])
 
-        tens_norm, split_dir_transformed = tensor_2_norm_trials_shifted(owcampdt)
+        tens_norm, split_dir_transformed = tensor_2_norm_trials_shifted(
+            owcampdt)
         if p.w[i] * tens_norm > tol:
             split_mask[i] = True
             split_dir[i] = p.Schol[i] @ split_dir_transformed
@@ -1359,7 +1380,8 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
         # find square root factor of precision matrix Pf^-1 = U@U^T
         U = _PSD(Pf).U
         # output-whitened wcovariance adjusted measurement partial derivative tensor
-        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T, mpdt, p.Schol[i], p.Schol[i])
+        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T,
+                             mpdt, p.Schol[i], p.Schol[i])
 
         # max right singular vec of the covariance adjusted measurement partial derivative tensor
         # flattened to be tall and skinny matrix
@@ -1409,7 +1431,8 @@ def id_sasos(p, pdt_func, tol):
         # compute measurement partial derivative tensor
         mpdt = np.array(pdt_func(*m))
         cov = p.P[i]
-        scaled_sixth_moment_unsym = np.einsum("ab,cd,ef->abcdef", cov, cov, cov)
+        scaled_sixth_moment_unsym = np.einsum(
+            "ab,cd,ef->abcdef", cov, cov, cov)
         # proportional to the 6th central moment
         moment = symmetrize_tensor(scaled_sixth_moment_unsym)
         mat = np.einsum("abcdef,iab,icd->ef", moment, mpdt, mpdt)
@@ -1474,7 +1497,8 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
         # output-whitened wcovariance adjusted measurement partial derivative tensor
         owmpdt = np.einsum("il,ljk->ijk", U.T, mpdt)
         cov = p.P[i]
-        scaled_sixth_moment_unsym = np.einsum("ab,cd,ef->abcdef", cov, cov, cov)
+        scaled_sixth_moment_unsym = np.einsum(
+            "ab,cd,ef->abcdef", cov, cov, cov)
         # proportional to the 6th central moment
         moment = symmetrize_tensor(scaled_sixth_moment_unsym)
         mat = np.einsum("abcdef,iab,icd->ef", moment, owmpdt, owmpdt)
@@ -1534,7 +1558,7 @@ def id_alodt(p, g, sigma_pt_opts, tol):
             y[:, j] = g(sigmas.X[:, j])
 
         dev_from_linear_fit = 0.5 * np.sum(
-            (y[:, 1 : n + 1] + y[:, n + 1 :] - 2 * y[:, 0, np.newaxis]) ** 2, axis=0
+            (y[:, 1: n + 1] + y[:, n + 1:] - 2 * y[:, 0, np.newaxis]) ** 2, axis=0
         )
         max_idx = np.argmax(dev_from_linear_fit)
 
@@ -1593,7 +1617,8 @@ def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
         G_statlin = np.linalg.solve(Px, Pxz).T  # statistical linearization
         G = jacobian_func(*m)  # deterministic linearization
 
-        eigvals, eigvecs = np.linalg.eigh(S.T @ (G_statlin - G).T @ (G_statlin - G) @ S)
+        eigvals, eigvecs = np.linalg.eigh(
+            S.T @ (G_statlin - G).T @ (G_statlin - G) @ S)
         max_idx = np.argmax(eigvals)
         if p.w[i] * np.sqrt(eigvals[max_idx]) > tol:
             split_mask[i] = True
