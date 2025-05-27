@@ -24,6 +24,7 @@ PyEst is a Python package for adaptive Gaussian mixture state estimation.
    contributing
 
 PyEst source code is available at `GitHub <https://github.com/scope-lab/pyest>`_
+
 Indices and tables
 ==================
 
