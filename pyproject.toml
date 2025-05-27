@@ -29,7 +29,7 @@ license-files = ["LICEN[CS]E*"]
 [project.urls]
 Homepage = "https://github.com/scope-lab/pyest"
 Issues = "https://github.com/scope-lab/pyest"
-Documentation = "https://github.com/scope-lab/pyest"
+Documentation = "https://pyest.readthedocs.io/en/latest/"
 
 [project.optional-dependencies]
 test = [

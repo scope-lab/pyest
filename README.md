@@ -121,3 +121,7 @@ J. Kulik and K.A. LeGrand, “Nonlinearity and Uncertainty Informed Moment-Match
 }
 
 ```
+
+## Documentation
+
+For more information about PyEst, please see the [documentation](https://pyest.readthedocs.io/en/latest/).

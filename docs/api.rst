@@ -40,3 +40,11 @@ Metrics
    :members:
    :undoc-members:
    :show-inheritance:
+
+Sensors
+-------
+
+.. automodule:: pyest.sensors
+   :members:
+   :undoc-members:
+   :show-inheritance:
