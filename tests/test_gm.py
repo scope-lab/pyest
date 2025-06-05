@@ -451,7 +451,7 @@ def test_split_for_fov():
     # check that the integral of pdf outside fov matches split
     p_lb = np.min(p.comp_bounds(sigma_mult=3)[0],axis=0)[:3]
     p_ub = np.max(p.comp_bounds(sigma_mult=3)[1],axis=0)[:3]
-    XX,YY,ZZ = np.meshgrid(*[np.linspace(lb,ub,400) for lb,ub in zip(p_lb,p_ub)], indexing='ij')
+    XX,YY,ZZ = np.meshgrid(*[np.linspace(lb,ub,200) for lb,ub in zip(p_lb,p_ub)], indexing='ij')
     pp = p.marginal_nd((0,1,2))(np.vstack((XX.flatten(), YY.flatten(), ZZ.flatten())).T).reshape(XX.shape)
 
     box_area = np.prod(p_ub - p_lb)
