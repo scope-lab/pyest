@@ -604,6 +604,10 @@ class GaussianMixture(object):
         self._Seig = Seig  # directly write Seig here as to not overwrite P
         self._set_cov(cov, cov_type)
 
+        # check that equal numbers of weights, means, and covariances are provided
+        if len(self.w) != len(self.m) or len(self.w) != len(self._cov):
+            raise ValueError("Number of weights, means, and covariances must match.")
+
         self.set_msize(self._cov[0].covariance.shape[-1])
 
     def __getitem__(self, ind):

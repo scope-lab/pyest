@@ -525,5 +525,36 @@ def test_pickle_gm():
     assert(p == ptest)
 
 
+def test_get_comp():
+    p = gm.defaults.default_gm()
+    # test with index
+    comp = p.get_comp(0)
+    npt.assert_array_equal(comp[0], p.w[0])
+    npt.assert_array_equal(comp[1], p.m[0])
+    npt.assert_array_equal(comp[2], p.P[0])
+
+    # test with index
+    comp = p.get_comp(1)
+    npt.assert_array_equal(comp[0], p.w[1])
+    npt.assert_array_equal(comp[1], p.m[1])
+    npt.assert_array_equal(comp[2], p.P[1])
+
+
+def test_init_mismatch_fail():
+
+    # try initializing a GaussianMixture with mismatched weights, means, and covariances
+    w = np.array([0.4, 0.6])
+    m = np.array([[30., 0.], [10., np.pi/2]])
+    P = np.array([[1., 0.5], [0.5, 3.4]])
+
+    fail(gm.GaussianMixture, ValueError, w, m, P)
+
+    w = np.array([0.4])
+    m = np.array([[30., 0.], [10., np.pi/2]])
+    P = np.array([[1., 0.5], [0.5, 3.4]])
+
+    fail(gm.GaussianMixture, ValueError, w, m, P)
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
