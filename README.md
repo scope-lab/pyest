@@ -1,5 +1,8 @@
 ![pyest_logo](./docs/image/pyest_logo.png)
-# PyEst: Gaussian Mixture Adaptive State Estimation
+
+# PyEst: Adaptive Gaussian Mixture State Estimation
+
+[![Python application](https://github.com/scope-lab/pyest/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/scope-lab/pyest/actions/workflows/pythonapp.yml)
 
 ## Basic Usage
 
