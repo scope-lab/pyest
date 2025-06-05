@@ -1,7 +1,7 @@
 import numpy as np
 import pyest.gm as pygm
 from pyest.filters import GaussianMixturePredict, GaussianMixtureUpdate
-from pyest.filters import KfdPredict, KfdUpdate
+from pyest.filters import KfdPredict, KfdUpdate, EkfdPredict
 from pyest.utils import make_tuple
 
 
@@ -52,6 +52,56 @@ class GmkfPredict(KfdPredict, GaussianMixturePredict):
 
         return pygm.GaussianMixture(wkm, mkm, Pkm)
 
+
+class GmekfPredict(EkfdPredict, GaussianMixturePredict):
+    """ Discrete Gaussian Mixture Kalman Filter Prediction
+
+    Parameters
+    ----------
+    f : callable
+        nonlinear difference equation of the form
+        x[k+1] = f(t[k+1], t[k], x[k], *args).
+    F : callable
+        (nx,nx) is state transition matrix of the form
+        F(tkm, tk, x, *args). If provided an ndarray instead, F will
+        automatically be recast as a callable.
+    Q : ndarray or callable
+        process noise covariance matrix of the form Q(tkm1, tkm). If provided
+        an ndarray instead, Q will automatically be recast as a callable.
+    M : (optional) ndarray or callable
+        process noise mapping matrix of the form M(tkm1, tkm). If provided
+        an ndarray instead, M will automatically be recast as a callable.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def predict(self, tv, pkm1, f_args=()):
+        """ perform GMKF prediction step
+
+        Parameters
+        ----------
+        tv : tuple
+            start and stop times given as tv=(tkm1, tk)
+        pkm1 : GaussianMixture
+            posterior GM at time k-1
+        f_args : (optional) tuple
+            tuple of arguments to be additionally passed to the system function
+
+        Returns
+        -------
+        GaussianMixture
+            prior GM at time k
+        """
+        # weights are constant over prediction
+        wkm = pkm1.w
+        mkm = np.empty_like(pkm1.m, dtype=float)
+        Pkm = np.empty_like(pkm1.P, dtype=float)
+        # perform time-update on each component
+        for i,(_, mkm1, Pkm1) in enumerate(pkm1):
+            mkm[i], Pkm[i] = super().predict(tv, mkm1, Pkm1, f_args=f_args)
+
+        return pygm.GaussianMixture(wkm, mkm, Pkm)
 
 class GmkfUpdate(KfdUpdate, GaussianMixtureUpdate):
     """ Discrete Gaussian Mixture Kalman Filter Update

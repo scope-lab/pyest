@@ -198,6 +198,34 @@ def test_GmkfPredict():
         )
 
 
+def test_Gmekfpredict():
+    """ test discrete time Extended Kalman filter prediction """
+    def F(tkm1, tk, xkm1): return np.array([[0, np.cos(xkm1[1])], [1, 0]])
+    def f(tkm1, tk, xkm1): return np.array([np.sin(xkm1[1]), xkm1[0]])
+    Q = 1e-4*np.eye(2)
+    gmekfpred = filters.GmekfPredict(f, F, Q=Q)
+
+    wkm1 = np.array([0.4, 0.6])
+    mkm1 = np.array([[30., 0.], [10., np.pi/2]])
+    Pkm1 = np.array([[[1., 0.5], [0.5, 3.4]],
+                     [[1., 0.2], [0.2, 1.5]]])
+    pkm1 = pygm.GaussianMixture(wkm1, mkm1, Pkm1)
+    p_prior = gmekfpred.predict(tv=(0, 1), pkm1=pkm1)
+    G1_exact = np.array([[0, 1], [1, 0]])
+    G2_exact = np.array([[0, 0], [1, 0]])
+    w_des = wkm1.copy()
+    m_des = np.array([[0., 30.], [1., 10.]])
+    P_des = np.array([G@P@G.T + Q for P, G in zip(Pkm1, [G1_exact, G2_exact])])
+
+    npt.assert_almost_equal(p_prior.w, w_des, decimal=15)
+    npt.assert_almost_equal(p_prior.m, m_des, decimal=15)
+    npt.assert_almost_equal(
+        p_prior.P,
+        P_des,
+        decimal=15
+    )
+
+
 def test_GmukfPredict():
     """ test Gaussian mixture unscented Kalman filter prediction """
     def F(tkm1, tk): return np.array([[1, tk-tkm1], [0, 1]])
