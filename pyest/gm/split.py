@@ -12,6 +12,8 @@ from ..metrics import l2_dist
 from ..tens import tensor_2_norm_trials_shifted, symmetrize_tensor
 from .gm import _PSD, GaussianMixture
 
+import jax
+
 # create/load split cache
 gm_split_l2_cache = Cache(__file__[:-3] + "l2_cache")
 gm_split_l2_cov_cache = Cache(__file__[:-3] + "l2_cov_cache")
@@ -1158,13 +1160,7 @@ def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
             G = jacobian_func(*m)
             # compute measurement partial derivative tensor
             mpdt = np.array(pdt_func(*m))
-        # compute linearly-mapped covariance
-        Pf = G @ p.P[i] @ G.T
-        # find square root factor of precision matrix Pf^-1 = U@U^T
-        U = _PSD(Pf).U
-        # compute the output-whitened measurement partial derivative tensor
-        owmpdt = np.einsum("il,ljk->ijk", U.T, mpdt)
-        tens_norm, split_dir_i = tensor_2_norm_trials_shifted(owmpdt)
+        tens_norm, split_dir_i = tensor_2_norm_trials_shifted(mpdt)
         if p.w[i] * tens_norm > tol:
             split_mask[i] = True
             split_dir[i] = split_dir_i
@@ -1222,10 +1218,13 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
         # compute linearly-mapped covariance
         Pf = G @ p.P[i] @ G.T
         # find square root factor of precision matrix Pf^-1 = U@U^T
-        U = _PSD(Pf).U
-        # output-whitened wcovariance adjusted measurement partial derivative tensor
-        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T,
-                             mpdt, p.Schol[i], p.Schol[i])
+        # U = np.linalg.inv(cholesky(Pf, lower=True)).T
+        # # output-whitened wcovariance adjusted measurement partial derivative tensor
+        # owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T,
+        #                      mpdt, p.Schol[i], p.Schol[i])
+        campdt = np.einsum("ilm,lj,mk->ijk",
+                              mpdt, p.Schol[i], p.Schol[i])
+        owcampdt = np.transpose(jax.scipy.linalg.solve_triangular(np.tile(cholesky(Pf, lower=True).T, (campdt.shape[1],campdt.shape[2],1,1)), np.transpose(campdt, (1,2,0)), lower=False), (2,0,1))
 
         tens_norm, split_dir_transformed = tensor_2_norm_trials_shifted(
             owcampdt)
@@ -1377,11 +1376,10 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
 
         # compute linearly-mapped covariance
         Pf = G @ p.P[i] @ G.T
-        # find square root factor of precision matrix Pf^-1 = U@U^T
-        U = _PSD(Pf).U
-        # output-whitened wcovariance adjusted measurement partial derivative tensor
-        owcampdt = np.einsum("ir,rlm,lj,mk->ijk", U.T,
-                             mpdt, p.Schol[i], p.Schol[i])
+        campdt = np.einsum("ilm,lj,mk->ijk",
+                              mpdt, p.Schol[i], p.Schol[i])
+        owcampdt = np.transpose(jax.scipy.linalg.solve_triangular(np.tile(cholesky(Pf, lower=True).T, (campdt.shape[1],campdt.shape[2],1,1)), np.transpose(campdt, (1,2,0)), lower=False), (2,0,1))
+
 
         # max right singular vec of the covariance adjusted measurement partial derivative tensor
         # flattened to be tall and skinny matrix
@@ -1492,10 +1490,8 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
             mpdt = np.array(pdt_func(*m))
         # compute linearly-mapped covariance
         Pf = G @ p.P[i] @ G.T
-        # find square root factor of precision matrix Pf^-1 = U@U^T
-        U = _PSD(Pf).U
-        # output-whitened wcovariance adjusted measurement partial derivative tensor
-        owmpdt = np.einsum("il,ljk->ijk", U.T, mpdt)
+        owmpdt = np.transpose(jax.scipy.linalg.solve_triangular(np.tile(cholesky(Pf, lower=True).T, (mpdt.shape[1],mpdt.shape[2],1,1)), np.transpose(mpdt, (1,2,0)), lower=False), (2,0,1))
+
         cov = p.P[i]
         scaled_sixth_moment_unsym = np.einsum(
             "ab,cd,ef->abcdef", cov, cov, cov)
@@ -1678,14 +1674,14 @@ def id_wussadl(p, jacobian_func, g, sigma_pt_opts, tol, deterministic_whitening=
 
         # find square root factor of precision matrix Pf^-1 = U@U^T
         if deterministic_whitening:
-            precision_sqrt = _PSD(G @ Px @ G.T).U
+            werror_mat = jax.scipy.linalg.solve_triangular(cholesky(G @ Px @ G.T, lower=True).T, (G_statlin - G) @ S, lower=False)
             # print("Using deterministic whitening")
         else:
-            precision_sqrt = _PSD(Py_UT).U
+            werror_mat = jax.scipy.linalg.solve_triangular(cholesky(Py_UT, lower=True).T, (G_statlin - G) @ S, lower=False)
             # print("Using UT-based whitening")
 
         # compute right singular value corresponding to the largest singular value:
-        U, Svs, Vh = np.linalg.svd(precision_sqrt.T @ (G_statlin - G) @ S)
+        U, Svs, Vh = np.linalg.svd(werror_mat)
         if p.w[i] * Svs[0] > tol:
             split_mask[i] = True
             # take the maximal right singular vector of GS and the inverse coordinate transform
