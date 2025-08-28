@@ -890,8 +890,8 @@ def recursive_split(p, split_opts, identify_split_components, *args):
     """
     RECURSIVE_SPLIT Splits Gaussians recursively based on a splitting criterion
 
-        Required
-        --------
+        Parameters
+        ----------
         p: GaussianMixture
             mixture to be split
         split_opts:  MixtureSplittingOptions
@@ -960,8 +960,8 @@ def recursive_split(p, split_opts, identify_split_components, *args):
 def id_variance(p, tol):
     """identify components and split directions based on variance
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     tol : float
@@ -989,8 +989,8 @@ def id_variance(p, tol):
 def id_fos(p, jacobian_func, tol):
     """identify components and split directions based on first-order stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     jacobian_func : callable
@@ -1021,6 +1021,11 @@ def id_fos(p, jacobian_func, tol):
            Informed Moment-Matching Gaussian Mixture Splitting,"
            https://arxiv.org/abs/2412.00343, 2024
 
+    See Also
+    --------
+    id_usfos : uncertainty scaled first-order stretching
+    id_safos : spherical average first-order stretching
+
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1036,8 +1041,8 @@ def id_fos(p, jacobian_func, tol):
 def id_safos(p, jacobian_func, tol):
     """identify components and split directions based on spherical average first-order stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     jacobian_func : callable
@@ -1077,8 +1082,8 @@ def id_safos(p, jacobian_func, tol):
 def id_usfos(p, jacobian_func, tol):
     """identify components and split directions based on scaled first-order stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     jacobian_func : callable
@@ -1117,8 +1122,8 @@ def id_usfos(p, jacobian_func, tol):
 def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
     """identify components and split directions based on nonlinear stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1170,8 +1175,8 @@ def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
 def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
     """identify components and split directions based on scaled nonlinear stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1238,8 +1243,8 @@ def id_solc(p, pdt_func, tol):
     """identify components and split directions based on second-order
     linearization change
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1257,6 +1262,11 @@ def id_solc(p, pdt_func, tol):
            vol. 41, no. 3, pp. 725–734, 2018.
     .. [3] K. Tuggle, “Model Selection for Gaussian Mixture Model Filtering and
            Sensor Scheduling,” Ph.D. dissertation, 2020.
+
+    See Also
+    --------
+    id_ussolc : uncertainty scaled second-order linearization change
+    id_wussolc : whitened uncertainty scaled second-order linearization change
 
     """
     split_mask = np.full(p.w.shape, False)
@@ -1278,8 +1288,8 @@ def id_ussolc(p, pdt_func, tol):
     """identify components and split directions based on uncertainty scaled
     second-order linearization change
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1306,6 +1316,10 @@ def id_ussolc(p, pdt_func, tol):
     .. [3] K. Tuggle, “Model Selection for Gaussian Mixture Model Filtering and
            Sensor Scheduling,” Ph.D. dissertation, 2020.
 
+    See Also
+    --------
+    id_solc : second-order linearization change
+    id_wussolc : whitened uncertainty scaled second-order linearization change
     """
     split_mask = np.full(p.w.shape, False)
     split_dir = np.full(p.m.shape, np.nan)
@@ -1329,8 +1343,8 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
     """identify components and split directions based on output-whitened
     uncertainty scaled second-order linearization change
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1359,6 +1373,11 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
     .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
            Informed Moment-Matching Gaussian Mixture Splitting,"
            https://arxiv.org/abs/2412.00343, 2024
+
+    See Also
+    --------
+    id_solc : second-order linearization change
+    id_ussolc : uncertainty scaled second-order linearization change
 
     """
     split_mask = np.full(p.w.shape, False)
@@ -1395,8 +1414,8 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
 def id_sasos(p, pdt_func, tol):
     """identify components and split directions based on scaled nonlinear stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1444,8 +1463,8 @@ def id_sasos(p, pdt_func, tol):
 def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
     """identify components and split directions based on scaled nonlinear stretching
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     pdt_func : callable
@@ -1508,8 +1527,8 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
 def id_alodt(p, g, sigma_pt_opts, tol):
     """identify components and split directions based on sigma point curvature
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     g : callable
@@ -1568,8 +1587,8 @@ def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
     """identify components and split directions based on the difference in
     deterministic and statistical linearization
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     jacobian_func : callable
@@ -1626,8 +1645,8 @@ def id_wussadl(p, jacobian_func, g, sigma_pt_opts, tol, deterministic_whitening=
     """identify components and split directions based on output-whitened
     uncertainty scaled statistical and deterministic linearization difference
 
-    Required
-    --------
+    Parameters
+    ----------
     p : GaussianMixture
         input Gaussian mixture to be considered for splitting
     jacobian_func : callable
