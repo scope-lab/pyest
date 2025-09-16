@@ -3,6 +3,14 @@ Examples
 
 This section provides examples of using pyest for various applications.
 
+Splitting and Plotting PyEst GMMs
+---------------------------------------------------------------------
+
+This example demonstrates using PyEst to split a mixand in a GMM, and how to plot the resulting GMM:
+
+.. literalinclude:: ../examples/example_gm_split.py
+   :language: python
+
 Gaussian Mixture Splitting for Field-of-View and Negative Information
 ---------------------------------------------------------------------
 
