@@ -1,7 +1,7 @@
 Examples
 ========
 
-This section provides examples of using pyest for various applications.
+This section provides examples of using PyEst for various applications.
 
 Splitting and Plotting PyEst GMMs
 ---------------------------------------------------------------------
