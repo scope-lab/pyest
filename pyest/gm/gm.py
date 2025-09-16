@@ -595,9 +595,18 @@ class GaussianMixture(object):
 
     def __init__(self, w, m, cov, cov_type='full', Seig=None):
         """
-        w is a 1d array
-        m is a 2d array (nC,nx)
-        cov is a 3d array (nC,nx,nx)
+        Required
+        --------
+        w: 1d array
+        m: 2d array (nC,nx)
+        cov: 3d array (nC,nx,nx)
+
+        Optional
+        --------
+        cov_type: str
+            type of covariance matrix. Defaults to 'full'.
+        Seig: 3d array
+            eigenvalues and eigenvectors of the covariance matrix. Defaults to None.
         """
         self.set_w(w)
         self.set_m(m)
@@ -658,24 +667,42 @@ class GaussianMixture(object):
         return np.array([eig_sqrt_factor(cov.covariance) for cov in self._cov])
 
     def get_size(self):
+        """
+        Returns the number of components in the Gaussian mixture model.
+        """
         return len(self.w)
 
     # def _set_size(self):
     #    self._size = len(self._w)
 
     def get_w(self):
+        """
+        Returns the weights (1d array) of the Gaussian mixture model.
+        """
         return self._w
 
     def set_w(self, w):
+        """
+        Sets the weights (1d array) of the Gaussian mixture model.
+        """
         self._w = np.atleast_1d(w)
 
     def get_m(self):
+        """
+        Returns the means (2d array (nC,nx)) of the Gaussian mixture model.
+        """
         return self._m
 
     def set_m(self, m):
+        """
+        Sets the means (2d array (nC,nx)) of the Gaussian mixture model.
+        """
         self._m = np.atleast_2d(m)
 
     def get_P(self, ind=None):
+        """
+        Returns the covariance matrices (3d array (nC,nx,nx)) of the Gaussian mixture model.
+        """
         if ind is not None:
             if np.isscalar(ind):
                 return self._cov[ind].covariance
@@ -684,6 +711,9 @@ class GaussianMixture(object):
         return np.array([P.covariance for P in self._cov])
 
     def set_P(self, P):
+        """
+        Sets the covariance matrices (3d array (nC,nx,nx)) of the Gaussian mixture model.
+        """
         self._set_cov(P, 'full')
 
     def _set_cov(self, cov, cov_type):
@@ -713,6 +743,9 @@ class GaussianMixture(object):
             raise ValueError('cov_type must be one of "full", "cholesky", or "eigendecomposition"')
 
     def set_Seig(self, S):
+        """
+        Sets the covariance matrix eigenvalues and eigenvectors.
+        """
         S = np.atleast_2d(S)
         if S.ndim == 2:
             self._Seig = S[np.newaxis, :, :]
@@ -860,7 +893,19 @@ class GaussianMixture(object):
         return gm_pdf_2d(self.w, self.m, self.P, dimensions, res, xbnd, ybnd)
 
     def pop(self, idx):
-        """ remove and return component by index """
+        """
+        remove and return component by index
+
+        Required
+        --------
+        idx: int
+            index of component to remove
+
+        Returns
+        -------
+        tuple
+            (weight, mean, covariance) of removed component
+        """
         w, m, P = self[idx]
         self._w = np.delete(self._w, idx, 0)
         self._m = np.delete(self._m, idx, 0)
