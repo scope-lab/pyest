@@ -33,7 +33,11 @@ Cislunar Space Object Uncertainty Propagation
 ---------------------------------------------
 
 This example shows how to use pyest for propagating uncertainty in the circular restricted three-body problem
-(CR3BP):
+(CR3BP).
+
+.. note::
+    This example utilizes a cache of precomputed results for splitting Gaussians. If the cache is not available, this example will generate new samples and store them in a cache for future use.
+    On first run, this may take a few minutes to build the cache. Future runs will take less time as the cache will be used to generate the Monte Carlo samples.
 
 .. literalinclude:: ../examples/example_splitting_cislunar.py
    :language: python
