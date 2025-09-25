@@ -1,10 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sklearn as sk
 import pyest.gm as pygm
-from sklearn import datasets
 
-# Initialize parameters of single-mixand GMM
+# Initialize parameters of a GMM with 2 mixands
 weights = [0.4, 0.6]
 means = [[0, 0], [10, 10]]
 covariances = np.array([[[16, 0], [0, 1]], [[16, 0], [0, 1]]])
@@ -21,7 +19,7 @@ ax2.set_ylim(-5, 15)
 
 p, X, Y = pyest_gmm.pdf_2d(dimensions=[0,1], res=100)
 ax1.contour(X, Y, p)
-ax1.set_title('Initial GMM with 1 mixand')
+ax1.set_title('Initial GMM')
 
 # Use PyEst split_gaussian to split the Gaussian mixture
 n = 1 # Select the index of the mixand to split
