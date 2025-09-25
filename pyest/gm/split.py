@@ -978,6 +978,9 @@ def id_variance(p, tol):
         
     Notes
     -----
+    Let
+        :math:`\mathbf{P_x}` be the initial covariance matrix.
+        
     variance measure is given by
 
     .. math::
@@ -1083,6 +1086,8 @@ def id_safos(p, jacobian_func, tol):
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
         
         :math:`\mathbf{P_x}` be the initial covariance matrix.
+        
+        :math:`\mathbf{u}` be .
         
     The spherical-average first order stretching (SAFOS) measure is given by
 
@@ -1265,9 +1270,9 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
     
         :math:`\mathbf{\|x\|_{P_z^{-1}}}` be the norm of x induced by the final precision matrix.
         
-        :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
+        :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
         
-        :math:`\mathbf{P_x}` be the covariance matrix.
+        :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
         
     The whitened uncertainty-scaled second order stretching (WUSSOS) measure is given by
 
@@ -1576,7 +1581,7 @@ def id_sasos(p, pdt_func, tol):
     
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
     
-        :math:`\mathbf{P_x}` be the covariance matrix.
+        :math:`\mathbf{P_x}` be the initial covariance matrix.
         
         :math:`\mathbf{\\varphi(u)}` be the (n-1)-dimensional surface measure on the ellipsoid :math:`\{u : u^TP_x^{-1}u = 1\}`
         
@@ -1647,7 +1652,7 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
     
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
     
-        :math:`\mathbf{P_x}` be the covariance matrix.
+        :math:`\mathbf{P_x}` be the initial covariance matrix.
         
         :math:`\mathbf{\\varphi(u)}` be the (n-1)-dimensional surface measure on the ellipsoid :math:`\{u : u^TP_x^{-1}u = 1\}`
         
