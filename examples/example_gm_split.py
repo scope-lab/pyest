@@ -29,9 +29,6 @@ split_comp = pygm.split_gaussian(*split_mixand, split_options)  # Perform split
 pyest_gmm += split_comp                                         # Update PyEst GMM to contain the new split mixands
 pyest_gmm.pop(n)                                                # Remove the old mixand that was just split
 
-''' NOTE: PyEst GMMs do NOT support GMMs with 0 mixands.
-To avoid this error, be sure to add a mixand before removing one from the mixture, as we did above. '''
-
 # Loop over GMMs and plot each mixand contour onto the axis
 for i in range(len(pyest_gmm)):
     gmm = pygm.GaussianMixture(pyest_gmm[i][0], pyest_gmm[i][1], pyest_gmm[i][2])

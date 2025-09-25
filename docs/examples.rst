@@ -10,6 +10,8 @@ This example demonstrates using PyEst to split a mixand in a GMM, and how to plo
 
 .. literalinclude:: ../examples/example_gm_split.py
    :language: python
+.. warning::
+    NOTE: PyEst GMMs do NOT support GMMs with 0 mixands. To avoid this error, be sure to add a mixand before removing one from the mixture, as we did above.
 
 Gaussian Mixture Splitting for Field-of-View and Negative Information
 ---------------------------------------------------------------------
