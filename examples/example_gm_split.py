@@ -22,7 +22,7 @@ ax1.contour(X, Y, p)
 ax1.set_title('Initial GMM')
 
 # Use PyEst split_gaussian to split the Gaussian mixture
-n = 1 # Select the index of the mixand to split
+n = 1                                                           # Select the index of the mixand to split
 split_options = pygm.GaussSplitOptions(L=3, lam=0.1)            # Set number of mixands to split into and lambda parameter
 split_mixand = pyest_gmm.get_comp(n)                            # Get mixand to split
 split_comp = pygm.split_gaussian(*split_mixand, split_options)  # Perform split
