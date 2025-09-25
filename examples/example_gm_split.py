@@ -7,7 +7,7 @@ from sklearn import datasets
 # PLOTTING FUNCTIONS
 def plot_iris(ax, iris, dimensions):
     """
-    Plot the iris dataset on a 2D scatter plot.
+    Plot the iris dataset on a 2D scatter plot given an existing figure axis.
     """
     d1 = dimensions[0]
     d2 = dimensions[1]
@@ -21,7 +21,7 @@ def plot_iris(ax, iris, dimensions):
 
 def plot_contour(ax, p, X, Y, data, dimensions, xlabel, ylabel, legend, title):
     """
-    Plot a contour plot of a 2D Gaussian mixture model.
+    Plot a contour plot of a 2D Gaussian mixture model on top of the iris datasetgiven an existing figure axis.
     """
     ax.contour(X, Y, p)
     scatter = plot_iris(ax, data, dimensions)
@@ -35,7 +35,7 @@ def plot_contour(ax, p, X, Y, data, dimensions, xlabel, ylabel, legend, title):
 
 def plot_PyestGMM(pyest_gmm, data, dimensions, xlabel, ylabel, legend, title):
     """
-    Plot a PyEst-type Gaussian mixture model.
+    Plot a PyEst-type Gaussian mixture model on top of specified dimensions of the iris dataset.
     """
     # Create figure and axis
     _, ax = plt.subplots()
