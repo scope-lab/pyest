@@ -188,6 +188,7 @@ def equal_weights(L):
     ----------
     L : int
         number of weights
+
     Returns
     -------
     ndarray
@@ -200,8 +201,8 @@ def eval_gmpdf(x, w, m, P):
     """
     evaluates Gaussian mixture at points x
 
-    Required
-    --------
+    Parameters
+    ----------
     x : array_like
         (n_samp, vect_length) points at which to evaluate the GM
     w : array_like
@@ -229,8 +230,8 @@ def eval_gmpdfchol(x, w, m, S):
     """
     evaluates Gaussian mixture at points x
 
-    Required
-    --------
+    Parameters
+    ----------
     x : array_like
         (n_samp, vect_length) points at which to evaluate the GM
     w : array_like
@@ -258,8 +259,8 @@ def optimized_eval_gmpdf(x, w, m, Schol, log_pdet):
     """
     Evaluates Gaussian mixture at points x
 
-    Required
-    --------
+    Parameters
+    ----------
     x : array_like
         (n_samp, vect_length) points at which to evaluate the GM
     w : array_like
@@ -416,8 +417,8 @@ def eig_sqrt_factor(P):
 def integral_gauss_product_chol(m1, S1, m2, S2):
     ''' compute integral of product of two Gaussians
 
-    Required
-    --------
+    Parameters
+    ----------
     m1: np.ndarray
         mean of Gaussian 1
     S1: np.ndarray
@@ -442,8 +443,8 @@ def integral_gauss_product_chol(m1, S1, m2, S2):
 def integral_gauss_product(m1, P1, m2, P2, allow_singular=False):
     ''' compute integral of product of two Gaussians
 
-    Required
-    --------
+    Parameters
+    ----------
     m1: np.ndarray
         mean of Gaussian 1
     P1: np.ndarray
@@ -498,8 +499,8 @@ def print_3d_mat(A):
 def gm_pdf_2d(w, m, P, dimensions=(0, 1), res=100, xbnd=None, ybnd=None):
     """ evaluate GM pdf in two dimensions
 
-    Required
-    --------
+    Parameters
+    ----------
     w: ndarray
         (nC,) weights
     m: ndarray
@@ -595,11 +596,15 @@ class GaussianMixture(object):
 
     def __init__(self, w, m, cov, cov_type='full', Seig=None):
         """
-        Required
-        --------
-        w: 1d array
-        m: 2d array (nC,nx)
-        cov: 3d array (nC,nx,nx)
+        Parameters
+        ----------
+        w: array_like
+          (nC,) array of mixand weights
+        m: array_like
+          (nC,nx) array of mixand means
+        cov: array_like
+          (nC,nx,nx) array of covariances. Covariances can be specified in
+          different ways, as specified by the optional cov_type argument
 
         Optional
         --------
@@ -837,11 +842,23 @@ class GaussianMixture(object):
         return _squeeze_output(optimized_eval_gmpdf(x, self.w, self.m, self.Schol, self.log_pdet))
 
     def mean(self):
-        """ return the mean of the Gaussian mixture """
+        """ return the mean of the distribution
+
+        Returns
+        -------
+        ndarray
+          (nx,) distribution mean
+        """
         return np.sum(self.w[:, np.newaxis] * self.m, axis=0)
 
     def cov(self):
-        """ return the conditional covariance """
+        """ return covariance of the distribution
+
+        Returns
+        -------
+        ndarray
+          (nx,nx) full covariance matrix of distribution
+        """
         wsum = np.sum(self.w)
         mean = self.mean()
         return np.sum([
