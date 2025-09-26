@@ -8,7 +8,7 @@ Splitting and Plotting PyEst GMMs
 
 This example demonstrates using PyEst to split a mixand in a GMM, and how to plot the resulting GMM:
 
-.. literalinclude:: ../examples/example_gm_split.py
+.. literalinclude:: ../examples/example_gm_2d_split.py
    :language: python
 .. warning::
     NOTE: PyEst GMMs do NOT support GMMs with 0 mixands. To avoid this error, be sure to add a mixand before removing one from the mixture, as we did above.
