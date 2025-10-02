@@ -3,6 +3,27 @@ Examples
 
 This section provides examples of using PyEst for various applications.
 
+Splitting the Univariate Standard Normal Distribuion
+---------------------------------------------------------------------
+The PyEst library makes it easy to split a univariate standard normal distribution
+in an optimal way, which is fundamental to the formation of so-called
+"splitting libraries."
+
+Each splitting solution is determined by the number of mixands :math:`L` and the
+regularization parameter :math:`\lambda`, which controls how large the resulting
+mixand variances are.
+
+The first time PyEst generates an optimal split solution for an
+:math:`(L,\lambda)` pair that hasn't been used before, it will solve an
+optimization problem and cache the resulting solution to disk. All future calls
+with this parameter pair will simply reference the cached result and thus be much
+faster.
+
+.. literalinclude:: ../examples/example_simple_gaussian_split.py
+   :language: python
+
+.. image:: image/univariate_split.png
+
 Splitting and Plotting PyEst Gaussian Mixtures
 ---------------------------------------------------------------------
 
