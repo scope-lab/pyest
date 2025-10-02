@@ -1,8 +1,11 @@
-![pyest_logo](./docs/image/pyest_logo.png)
+![pyest_logo](https://github.com/scope-lab/pyest/blob/main/docs/image/pyest_logo.png?raw=true)
 
 # PyEst: Adaptive Gaussian Mixture State Estimation
 
 [![Python application](https://github.com/scope-lab/pyest/actions/workflows/pythonapp.yml/badge.svg)](https://github.com/scope-lab/pyest/actions/workflows/pythonapp.yml)
+
+> **Not pytest**: PyEst is a Python library for **adaptive Gaussian mixture state estimation**.
+> For the Python test framework, see [pytest](https://pytest.org).
 
 ## Basic Usage
 
