@@ -958,7 +958,7 @@ def recursive_split(p, split_opts, identify_split_components, *args):
 
 
 def id_variance(p, tol):
-    """identify components and split directions based on variance
+    r"""identify components and split directions based on variance
 
     Parameters
     ----------
@@ -975,18 +975,18 @@ def id_variance(p, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
     variance measure is given by
 
     .. math::
 
         \max_{|\mathbf{x}\|_{P_x^{-1}} = 1} \|\mathbf{x}\|
-        
+
     References
     ----------
     .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
@@ -1004,7 +1004,7 @@ def id_variance(p, tol):
 
 
 def id_fos(p, jacobian_func, tol):
-    """identify components and split directions based on first-order stretching
+    r"""identify components and split directions based on first-order stretching
 
     Parameters
     ----------
@@ -1026,9 +1026,9 @@ def id_fos(p, jacobian_func, tol):
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-    
+
     The first order stretching (FOS) measure is given by
 
     .. math::
@@ -1059,7 +1059,7 @@ def id_fos(p, jacobian_func, tol):
 
 
 def id_safos(p, jacobian_func, tol):
-    """identify components and split directions based on spherical average first-order stretching
+    r"""identify components and split directions based on spherical average first-order stretching
 
     Parameters
     ----------
@@ -1076,19 +1076,19 @@ def id_safos(p, jacobian_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\\varphi(u)}` be the (n-1)-dimensional surface measure on the ellipsoid :math:`\{u : u^TP_x^{-1}u = 1\}`
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
         :math:`\mathbf{u}` be .
-        
+
     The spherical-average first order stretching (SAFOS) measure is given by
 
     .. math::
@@ -1118,7 +1118,7 @@ def id_safos(p, jacobian_func, tol):
 
 
 def id_usfos(p, jacobian_func, tol):
-    """identify components and split directions based on scaled first-order stretching
+    r"""identify components and split directions based on scaled first-order stretching
 
     Parameters
     ----------
@@ -1136,21 +1136,21 @@ def id_usfos(p, jacobian_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
     The uncertainty-scaled first order stretching (USFOS) measure is given by
 
     .. math::
 
         \max_{\|\mathbf{x}\|_{P_x^{-1}} = 1} \Vert\mathbf{Gx}\Vert_2
-        
+
     References
     ----------
     .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
@@ -1172,7 +1172,7 @@ def id_usfos(p, jacobian_func, tol):
 
 
 def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
-    """identify components and split directions based on nonlinear stretching
+    r"""identify components and split directions based on nonlinear stretching
 
     Parameters
     ----------
@@ -1197,13 +1197,13 @@ def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-    
+
     The second order stretching (SOS) measure is given by
 
     .. math::
@@ -1238,7 +1238,7 @@ def id_sos(p, pdt_func, jacobian_func, tol, single_fn=False):
 
 
 def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
-    """identify components and split directions based on scaled nonlinear stretching
+    r"""identify components and split directions based on scaled nonlinear stretching
 
     Parameters
     ----------
@@ -1263,17 +1263,17 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\|x\|_{P_z^{-1}}}` be the norm of x induced by the final precision matrix.
-        
+
         :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
     The whitened uncertainty-scaled second order stretching (WUSSOS) measure is given by
 
     .. math::
@@ -1320,7 +1320,7 @@ def id_wussos(p, pdt_func, jacobian_func, tol, single_fn=False):
 
 
 def id_solc(p, pdt_func, tol):
-    """identify components and split directions based on second-order
+    r"""identify components and split directions based on second-order
     linearization change
 
     Parameters
@@ -1338,21 +1338,21 @@ def id_solc(p, pdt_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\|x\|_F}` be the Frobenius norm of x.
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
     The second order linearization change (SOLC) measure is given by
 
     .. math::
 
         \max_{\|\mathbf{x}\|_{2} = 1} \Vert\mathbf{G}^{(2)}\mathbf{x}\Vert_F
-        
+
     References
     ----------
     .. [1] Jackson Kulik and Keith A. LeGrand, "Nonlinearity and Uncertainty
@@ -1386,7 +1386,7 @@ def id_solc(p, pdt_func, tol):
 
 
 def id_ussolc(p, pdt_func, tol):
-    """identify components and split directions based on uncertainty scaled
+    r"""identify components and split directions based on uncertainty scaled
     second-order linearization change
 
     Parameters
@@ -1406,17 +1406,17 @@ def id_ussolc(p, pdt_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\|x\|_F}` be the Frobenius norm of x.
-        
+
         :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
     The uncertainty-scaled second order linearization change (USSOLC) measure is given by
 
     .. math::
@@ -1459,7 +1459,7 @@ def id_ussolc(p, pdt_func, tol):
 
 
 def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
-    """identify components and split directions based on output-whitened
+    r"""identify components and split directions based on output-whitened
     uncertainty scaled second-order linearization change
 
     Parameters
@@ -1489,17 +1489,17 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\|x\|_F}` be the Frobenius norm of x.
-        
+
         :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
-        
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
         :math:`\mathbf{P_z}` be the linear prediction of the covariance matrix.
-        
+
     The whitened uncertainty-scaled second-order linearization change (WUSSOLC) measure is given by
 
     .. math::
@@ -1551,7 +1551,7 @@ def id_wussolc(p, pdt_func, jacobian_func, tol, single_fn=False):
 
 
 def id_sasos(p, pdt_func, tol):
-    """identify components and split directions based on scaled nonlinear stretching
+    r"""identify components and split directions based on scaled nonlinear stretching
 
     Parameters
     ----------
@@ -1572,19 +1572,19 @@ def id_sasos(p, pdt_func, tol):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{u}` be the .
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-    
+
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
         :math:`\mathbf{\\varphi(u)}` be the (n-1)-dimensional surface measure on the ellipsoid :math:`\{u : u^TP_x^{-1}u = 1\}`
-        
+
     The spherical-average second order stretching (SASOS) measure is given by
 
     .. math::
@@ -1618,7 +1618,7 @@ def id_sasos(p, pdt_func, tol):
 
 
 def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
-    """identify components and split directions based on scaled nonlinear stretching
+    r"""identify components and split directions based on scaled nonlinear stretching
 
     Parameters
     ----------
@@ -1643,21 +1643,21 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
         (nC,) boolean array indicating which components are marked for splitting
     split_dir : np.ndarray
         (nC, nX) array of split directions for each component
-        
+
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-    
+
         :math:`\mathbf{P_x}` be the initial covariance matrix.
-        
+
         :math:`\mathbf{\\varphi(u)}` be the (n-1)-dimensional surface measure on the ellipsoid :math:`\{u : u^TP_x^{-1}u = 1\}`
-        
+
         :math:`\mathbf{u}` be the .
-        
+
     The whitened spherical-average second order stretching (WSASOS) measure is given by
 
     .. math::
@@ -1701,7 +1701,7 @@ def id_wsasos(p, pdt_func, jacobian_func, tol, single_fn=False):
 
 
 def id_alodt(p, g, sigma_pt_opts, tol):
-    """identify components and split directions based on sigma point curvature
+    r"""identify components and split directions based on sigma point curvature
 
     Parameters
     ----------
@@ -1760,7 +1760,7 @@ def id_alodt(p, g, sigma_pt_opts, tol):
 
 
 def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
-    """identify components and split directions based on the difference in
+    r"""identify components and split directions based on the difference in
     deterministic and statistical linearization
 
     Parameters
@@ -1787,11 +1787,11 @@ def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
         :math:`\mathbf{G}^{(SL)}` be the statistical linearization of G.
-        
+
     The statistical and deterministic linearization (SADL) measure is given by
 
     .. math::
@@ -1832,7 +1832,7 @@ def id_sadl(p, jacobian_func, g, sigma_pt_opts, tol):
 
 
 def id_wussadl(p, jacobian_func, g, sigma_pt_opts, tol, deterministic_whitening=True):
-    """identify components and split directions based on output-whitened
+    r"""identify components and split directions based on output-whitened
     uncertainty scaled statistical and deterministic linearization difference
 
     Parameters
@@ -1859,15 +1859,15 @@ def id_wussadl(p, jacobian_func, g, sigma_pt_opts, tol, deterministic_whitening=
     Notes
     -----
     Let
-    
+
         :math:`\mathbf{G}` be the Jacobian of the nonlinear function.
-        
+
         :math:`\mathbf{G}^{(SL)}` be the statistical linearization of G.
-        
+
         :math:`\mathbf{P_z}` be the linear prediction of the covariance matrix.
-        
+
         :math:`\mathbf{\|x\|_{P_x^{-1}}}` be the norm of x induced by the initial precision matrix.
-        
+
     The whitened uncertainty-scaled statistical and deterministic linearization (WUSSADL) measure is given by
 
     .. math::
