@@ -31,6 +31,7 @@ __all__ = [
     'v_eval_mvnpdfchol',
     'integral_gauss_product',
     'integral_gauss_product_chol',
+    'integral_squared_gm',
     'marginal_2d',
     'marginal_nd',
     'comp_bounds',
@@ -461,6 +462,24 @@ def integral_gauss_product(m1, P1, m2, P2, allow_singular=False):
     '''
 
     return multivariate_normal.pdf(m1, m2, P1 + P2, allow_singular=allow_singular)
+
+
+def integral_squared_gm(p):
+    ''' compute integral of squared Gaussian mixture
+
+    Parameters
+    ----------
+    p : GaussianMixture
+        Gaussian mixture
+
+    Returns
+    -------
+    integral : float
+        integral of the squared Gaussian mixture
+    '''
+    return np.sum([
+        wi*wj*eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p for (wj, mj, Pj) in p
+    ])
 
 
 def marginal_2d(m, P, dimensions=[0, 1]):
