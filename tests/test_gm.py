@@ -8,6 +8,7 @@ from pyest.sensors.defaults import default_poly_fov
 from pyest.sensors import ConvexPolyhedralFieldOfView
 from pyest.utils import fail
 import pytest
+from pyest.metrics import max_covariance_ratio
 
 
 def test_gm_equal_weights():
@@ -555,6 +556,57 @@ def test_init_mismatch_fail():
 
     fail(gm.GaussianMixture, ValueError, w, m, P)
 
+def test_cov():
+    # Initial covariance matrix P0 (6×6)
+    P0 = np.array([
+        [2.25e-06, 0, 0, 0, 0, 0],
+        [0, 2.25e-06, 0, 0, 0, 0],
+        [0, 0, 2.25e-06, 0, 0, 0],
+        [0, 0, 0, 1.77777778e-14, 0, 0],
+        [0, 0, 0, 0, 1.77777778e-14, 0],
+        [0, 0, 0, 0, 0, 1.77777778e-14]
+    ])
+
+    # Initial large mean vector m0
+    m0 = np.array([
+        -3.95911227e+05, -1.80422801e+05, -8.03243134e+04,
+         5.48813474e-01, -1.02480997e+00, -5.93612009e-01
+    ])
+
+    # Single-component GMM (weight 1)
+    weights = np.array([1])
+    p0 = gm.GaussianMixture(weights, m0, P0)
+
+    # Options for Gaussian splitting
+    split_opts = gm.GaussSplitOptions(
+        L=3,              # number of components created per split
+        lam=1e-3,         # scaling parameter
+        recurse_depth=3,  # maximum recursion depth
+        min_weight=-np.inf
+    )
+
+    # No weight threshold
+    split_tol = -np.inf
+
+    # Arguments passed to recursive_split: splitting method + tolerance
+    recursive_split_args = (gm.split.id_variance, split_tol)
+
+    # Apply recursive splitting to the initial GMM
+    p0 = gm.split.recursive_split(p0, split_opts, *recursive_split_args)
+
+    # Cholesky decomposition of the resulting GMM covariance
+    Schol_gmm = np.atleast_2d(np.linalg.cholesky(p0.cov()))
+
+    # Cholesky decomposition of the original covariance
+    Schol_P0 = np.atleast_2d(np.linalg.cholesky(P0))
+
+    # Compute the maximum covariance ratio between the two matrices
+    max_cov_ratio = abs(max_covariance_ratio(Schol_gmm, Schol_P0))
+
+    # Test: the covariance should not increase by more than 0.01%
+    assert max_cov_ratio <= 1.0001, f"max_cov_ratio is too large: {max_cov_ratio}"
 
 if __name__ == '__main__':
     pytest.main([__file__])
+
+

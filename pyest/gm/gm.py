@@ -6,6 +6,7 @@ import jax
 import numpy as np
 import pandas as pd
 from numpy import pi, sqrt
+from copy import copy
 from numpy.random import rand, randn
 from scipy.stats._multivariate import _LOG_2PI, _PSD, _squeeze_output
 from scipy.stats import Covariance, _covariance
@@ -871,18 +872,30 @@ class GaussianMixture(object):
         return np.sum(self.w[:, np.newaxis] * self.m, axis=0)
 
     def cov(self):
-        """ return covariance of the distribution
+        """Compute the covariance matrix of the distribution.
 
         Returns
         -------
         ndarray
-          (nx,nx) full covariance matrix of distribution
+            (nx, nx) full covariance matrix of the distribution
         """
-        wsum = np.sum(self.w)
+        # Compute the mean of the distribution
         mean = self.mean()
-        return np.sum([
-            w/wsum*(P + np.outer(m, m)) for w, m, P in self
-        ], axis=0) - np.outer(mean, mean)
+
+        w = copy(self.w)
+        w = w / np.sum(w)
+
+        # Extract individual covariances
+        covs = self.P
+
+        # Compute the difference between each mixand mean and the distribution mean
+        diffs = self.m - mean  # shape (nC, nx)
+
+        # Compute the outer product of diffs for each sample
+        outer_diffs = diffs[:, :, None] * diffs[:, None, :]  # shape (nC, nx, nx)
+
+        # Weighted sum of covariances and outer products
+        return np.sum(w[:, None, None] * (covs + outer_diffs), axis=0)
 
     def cdf(self, x, allow_singular=False):
         """ evaluate GM CDF at points x"""
@@ -1024,3 +1037,4 @@ class GaussSplitOptions(object):
         self.state_idxs = np.array(state_idxs)
         self.spectral_direction_only = spectral_direction_only
         self.variance_preserving = variance_preserving
+
