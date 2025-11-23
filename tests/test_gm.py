@@ -572,7 +572,7 @@ def test_cov():
         -3.95911227e+05, -1.80422801e+05, -8.03243134e+04,
          5.48813474e-01, -1.02480997e+00, -5.93612009e-01
     ])
-    
+
     # Single-component GMM (weight 1)
     weights = np.array([1])
     p0 = gm.GaussianMixture(weights, m0, P0)
@@ -584,7 +584,7 @@ def test_cov():
         recurse_depth=3,  # maximum recursion depth
         min_weight=-np.inf
     )
-    
+
     # No weight threshold
     split_tol = -np.inf
 

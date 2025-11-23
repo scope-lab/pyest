@@ -6,6 +6,7 @@ import jax
 import numpy as np
 import pandas as pd
 from numpy import pi, sqrt
+from copy import copy
 from numpy.random import rand, randn
 from scipy.stats._multivariate import _LOG_2PI, _PSD, _squeeze_output
 from scipy.stats import Covariance, _covariance
@@ -880,22 +881,19 @@ class GaussianMixture(object):
         """
         # Compute the mean of the distribution
         mean = self.mean()
-        
-        # Extract weights for each sample (assuming self.w exists)
-        w = self.w
-        
-        # Normalise weights to sum to 1
+
+        w = copy(self.w)
         w = w / np.sum(w)
-        
-        # Extract individual covariances (self.P should be shape (n_samples, nx, nx))
+
+        # Extract individual covariances
         covs = self.P
-        
-        # Compute the difference between each sample and the mean
-        diffs = self.m - mean  # shape (n_samples, nx)
-        
+
+        # Compute the difference between each mixand mean and the distribution mean
+        diffs = self.m - mean  # shape (nC, nx)
+
         # Compute the outer product of diffs for each sample
-        outer_diffs = diffs[:, :, None] * diffs[:, None, :]  # shape (n_samples, nx, nx)
-        
+        outer_diffs = diffs[:, :, None] * diffs[:, None, :]  # shape (nC, nx, nx)
+
         # Weighted sum of covariances and outer products
         return np.sum(w[:, None, None] * (covs + outer_diffs), axis=0)
 
