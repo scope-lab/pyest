@@ -1,4 +1,5 @@
 import numpy as np
+import warnings
 from numba import jit
 from scipy.spatial import KDTree
 
@@ -125,7 +126,7 @@ def merge(p, md, gate=None):
     )
 
 
-def merge_runnals(p, K):
+def merge_runnalls(p, K):
     """ KL-Divergence based mixture reduction
 
     Paramters
@@ -142,7 +143,7 @@ def merge_runnals(p, K):
 
     Notes
     -----
-    This algorithm is based on the work by Runnals [1].
+    This algorithm is based on the work by Runnalls [1].
 
     This function was ported to python from David F. Crouse's MATLAB tracking
     library.
@@ -153,11 +154,11 @@ def merge_runnals(p, K):
     reduction," IEEE Trans. Aerosp. Electron. Syst., vol. 43, no. 3, pp.
     989-999, Jul. 2007.
 """
-    w, m, P = _merge_runnals(p.w, p.m, p.P, K)
+    w, m, P = _merge_runnalls(p.w, p.m, p.P, K)
     return GaussianMixture(w, m, P)
 
 
-def _merge_runnals(w, mu, P, K):
+def _merge_runnalls(w, mu, P, K):
     """ KL-Divergence based mixture reduction
 
     Paramters
@@ -182,7 +183,7 @@ def _merge_runnals(w, mu, P, K):
 
     Notes
     -----
-    This algorithm is based on the work by Runnals [1].
+    This algorithm is based on the work by Runnalls [1].
 
     This function was ported to python from David F. Crouse's MATLAB tracking
     library.
@@ -205,8 +206,8 @@ def _merge_runnals(w, mu, P, K):
     # We shall fill the cost matrix with the cost of all pairs.
     for cur1 in range(N-1):
         for cur2 in range(cur1+1, N):
-            M[cur1, cur2] = runnals_b_dist(w[cur1], w[cur2], mu[cur1],
-                                           mu[cur2], P[cur1], P[cur2])
+            M[cur1, cur2] = runnalls_b_dist(w[cur1], w[cur2], mu[cur1],
+                                            mu[cur2], P[cur1], P[cur2])
 
     Nr = N
     for mergeRound in range(N-K):
@@ -237,14 +238,14 @@ def _merge_runnals(w, mu, P, K):
         ))
 
         for curRow in range(Nr-1):
-            M[curRow, Nr-1] = runnals_b_dist(w[curRow], w[Nr-1],
-                                             mu[curRow], mu[Nr-1], P[curRow], P[Nr-1])
+            M[curRow, Nr-1] = runnalls_b_dist(w[curRow], w[Nr-1],
+                                              mu[curRow], mu[Nr-1], P[curRow], P[Nr-1])
 
     return w, mu, P
 
 
 @jit(nopython=True)
-def runnals_b_dist(w1, w2, m1, m2, P1, P2):
+def runnalls_b_dist(w1, w2, m1, m2, P1, P2):
     """ dissimilarity measure between two GM components
 
     Parameters
@@ -288,10 +289,55 @@ def runnals_b_dist(w1, w2, m1, m2, P1, P2):
     w2m = w2/(w1+w2)
     P12 = w1m*P1 + w2m*P2 + w1m*w2m*(np.outer(diff, diff))
 
-    val = 0.5*((w1+w2)*np.log(np.linalg.det(P12))-w1 *
-               np.log(np.linalg.det(P1))-w2*np.log(np.linalg.det(P2)))
+    sign12, logdet12 = np.linalg.slogdet(P12)
+    sign1, logdet1 = np.linalg.slogdet(P1)
+    sign2, logdet2 = np.linalg.slogdet(P2)
+    val = 0.5*((w1+w2)*(sign12*logdet12) - w1*(sign1*logdet1) - w2*(sign2*logdet2))
 
     # deal with the case where w1 and w2 are both essentially zero
     if not np.isfinite(val):
         val = 0
     return val
+
+
+# Deprecated functions with old spelling (single 'l')
+def merge_runnals(p, K):
+    """
+    .. deprecated::
+        Use :func:`merge_runnalls` instead. The spelling 'runnals' was incorrect.
+    """
+    warnings.warn(
+        "merge_runnals is deprecated and will be removed in a future version. "
+        "Use merge_runnalls instead (correct spelling with double 'l').",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return merge_runnalls(p, K)
+
+
+def _merge_runnals(w, mu, P, K):
+    """
+    .. deprecated::
+        Use :func:`_merge_runnalls` instead. The spelling 'runnals' was incorrect.
+    """
+    warnings.warn(
+        "_merge_runnals is deprecated and will be removed in a future version. "
+        "Use _merge_runnalls instead (correct spelling with double 'l').",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return _merge_runnalls(w, mu, P, K)
+
+
+def runnals_b_dist(w1, w2, m1, m2, P1, P2):
+    """
+    .. deprecated::
+        Use :func:`runnalls_b_dist` instead. The spelling 'runnals' was incorrect.
+    """
+    warnings.warn(
+        "runnals_b_dist is deprecated and will be removed in a future version. "
+        "Use runnalls_b_dist instead (correct spelling with double 'l').",
+        DeprecationWarning,
+        stacklevel=2
+    )
+    return runnalls_b_dist(w1, w2, m1, m2, P1, P2)

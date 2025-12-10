@@ -530,7 +530,7 @@ def test_merge_runnalls(benchmark):
 
     p = gm.GaussianMixture([w1, w2], [m1, m2], [P1, P2])
     K = 1  # reduce to single component
-    p_red = gm.merge_runnals(p, K)
+    p_red = gm.merge_runnalls(p, K)
     assert(len(p_red) == 1)
     assert(p_red.w[0] == 1)
     npt.assert_array_equal(m1, p_red.m[0])
@@ -539,7 +539,7 @@ def test_merge_runnalls(benchmark):
     # now use the default mixture (w/ different components) and ensure that the
     # conditional mean and covariance are preserved
     p = gm.defaults.default_gm()
-    p_red = benchmark(gm.merge_runnals, p, K)
+    p_red = benchmark(gm.merge_runnalls, p, K)
     npt.assert_array_equal(p.mean(), p_red.mean())
     npt.assert_array_almost_equal(p.cov(), p_red.cov())
 
