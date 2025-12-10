@@ -225,18 +225,20 @@ def test_integral_gauss_product_chol():
 def test_gm_rvs():
     """ test gm random sampling """
     gmm = gm.defaults.default_gm()
-    np.random.seed(46)
-    Y = gmm.rvs(2)
+    rng = np.random.default_rng(seed=0)
+    Y = gmm.rvs(2, random_state=rng)
     npt.assert_allclose(
         Y,
         np.array([
-            [15.419169134640605,  4.084490154472613,
-             0.136294534030536, -0.116798840587642],
-            [14.962682295485461,  4.014234989060866,
-             0.016649473626872, 0.419306834014983]]
+            [15.326615551726073,  4.334008276899985, -0.040813697018555,
+            0.31431505359709 ],
+            [11.310568701170665,  5.38012150807997 ,  0.034821909613679,
+            -0.300530290977397]]
         ),
         rtol=1e-7
     )
+    X = gmm.rvs(2, random_state=rng)
+    assert not np.any(X==Y)
 
 
 def test_optimize_gauss_split():

@@ -961,13 +961,19 @@ class GaussianMixture(object):
         self._cov = np.delete(self._cov, idx, 0)
         return w, m, P
 
-    def rvs(self, size=None):
+    def rvs(self, size=None, random_state=None):
         """ Gaussian Mixture generated random variates
 
         Parameters
         ----------
         size : int, optional
             Defining number of random variates (Default is 1)
+        random_state : int, numpy.random.Generator, numpy.random.RandomState, optional
+            Random state for reproducibility. Can be:
+            - An integer seed
+            - A numpy.random.Generator instance
+            - A numpy.random.RandomState instance
+            - None (default) for non-deterministic results
 
         Returns
         -------
@@ -976,21 +982,46 @@ class GaussianMixture(object):
 
         Notes
         -----
-        If N is not specified, a single (possibly-vector) random variate is
-        returned. If N is specified, an ndarray of random variates is
-        returned, even for N=1.
+        If size is not specified, a single (possibly-vector) random variate is
+        returned. If size is specified, an ndarray of random variates is
+        returned, even for size=1.
         """
+        # Handle random_state parameter
+        if random_state is None:
+            rng = np.random.default_rng()
+        elif isinstance(random_state, (int, np.integer)):
+            rng = np.random.default_rng(random_state)
+        elif isinstance(random_state, np.random.Generator):
+            rng = random_state
+        elif isinstance(random_state, np.random.RandomState):
+            # For backward compatibility with old numpy API
+            rng = random_state
+        else:
+            raise ValueError("random_state must be an int, Generator, RandomState, or None")
+
         sort_idx = np.argsort(-self._w)
         # sort and normalize weight
         w_sorted = self._w[sort_idx]/np.sum(self._w)
         cum_weights = np.cumsum(w_sorted)
         S_sorted = self.Schol[sort_idx]
+
         if size is None:
-            comp_idx = np.where(rand() < cum_weights)[0][0]
-            return self.m[sort_idx][comp_idx] + S_sorted[comp_idx]@randn(self._msize)
+            # Generate uniform random number for component selection
+            u = rng.random() if isinstance(rng, np.random.Generator) else rng.rand()
+            comp_idx = np.where(u < cum_weights)[0][0]
+            # Generate normal random variates
+            z = rng.standard_normal(self._msize) if isinstance(rng, np.random.Generator) else rng.randn(self._msize)
+            return self.m[sort_idx][comp_idx] + S_sorted[comp_idx] @ z
         else:
-            comp_idx = [np.where(rand() < cum_weights)[0][0] for i in range(size)]
-            return _squeeze_output(np.array([self.m[sort_idx][c] + S_sorted[c]@randn(self._msize) for c in comp_idx]))
+            # Generate uniform random numbers for component selection
+            u = rng.random(size) if isinstance(rng, np.random.Generator) else rng.rand(size)
+            comp_idx = [np.where(u[i] < cum_weights)[0][0] for i in range(size)]
+            # Generate normal random variates
+            samples = []
+            for c in comp_idx:
+                z = rng.standard_normal(self._msize) if isinstance(rng, np.random.Generator) else rng.randn(self._msize)
+                samples.append(self.m[sort_idx][c] + S_sorted[c] @ z)
+            return _squeeze_output(np.array(samples))
 
     size = property(get_size, _not_allowed)
     w = property(get_w, set_w)
