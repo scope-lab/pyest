@@ -183,6 +183,28 @@ def test_eval_gmpdfchol():
     # test failure case where the dimension of samples is wrong
     fail(gm.eval_gmpdf, ValueError, np.vstack((x1, x2, x3)).T, w, m, S)
 
+def test_eval():
+    w = np.array([0.4, 0.6])
+    # choose means to be very far apart in the sense of Mahalanobis distance
+    m = np.array([[-1e5, -2e5], [3e5, 4e5]])
+    P = np.array([[[1, 0.25], [0.25, 4]], [[2, 0.5], [0.5, 3]]])
+    S = np.array([np.linalg.cholesky(Pi) for Pi in P])
+    p_full = gm.GaussianMixture(w, m, P, 'full')
+    p_chol = gm.GaussianMixture(w, m, S, 'cholesky')
+    x1 = m[1] + S[1] @ np.random.randn(2)
+    x2 = m[0] + S[0] @ np.random.randn(2)
+    x3 = m[0] + S[0] @ np.random.randn(2)
+    evals_des = np.array([
+        w[1]*gm.multivariate_normal.pdf(x1.T, m[1], P[1]),
+        w[0]*gm.multivariate_normal.pdf(x2.T, m[0], P[0]),
+        w[0]*gm.multivariate_normal.pdf(x3.T, m[0], P[0])])
+
+    evals = p_chol(np.vstack((x1, x2, x3)))
+    npt.assert_almost_equal(evals, evals_des, decimal=8)
+
+    evals = p_full(np.vstack((x1, x2, x3)))
+    npt.assert_almost_equal(evals, evals_des, decimal=8)
+
 
 def test_integral_gauss_product_chol():
     m1 = np.array([1, 2])
