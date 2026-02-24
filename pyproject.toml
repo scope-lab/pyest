@@ -58,3 +58,6 @@ source = "vcs"
 
 [tool.hatch.version.raw-options]
 version_scheme = "no-guess-dev"
+
+[tool.hatch.build.hooks.vcs]
+version-file = "pyest/_version.py"
