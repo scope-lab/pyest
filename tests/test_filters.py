@@ -90,6 +90,76 @@ def test_extendedkalmandiscretepredict():
     npt.assert_array_equal(m_prior, m_des)
     npt.assert_array_equal(P_prior, P_des)
 
+def test_extendedkalmandiscreteupdate():
+    """ test discrete time extended Kalman filter update """
+    ## Polar transformation test case
+    def h(m): return np.array([np.linalg.norm(m), np.arctan2(m[1], m[0])])
+    def H(m): return np.array([[m[0]/np.linalg.norm(m), m[1]/np.linalg.norm(m)],
+                               [-m[1]/(m[0]**2*(1+(m[1]/m[0])**2)),1/(m[0]*(1+(m[1]/m[0])**2))]])
+    R = np.array([[0.1**2, 0],
+                  [0, 0.1**2]])
+    
+    ekfdupd = filters.EkfdUpdate(h = h, H = H, R = R)
+
+    mkm = np.array([np.cos(np.pi/4), np.sin(np.pi/4)])
+    Pkm = np.eye(2)
+
+    # checking that z = h(x) yields no mean update
+    zk = h(mkm)
+    mkp, Pkp = ekfdupd.update(mkm, Pkm, zk)
+    mkp_des = mkm
+    npt.assert_array_equal(mkp, mkp_des)
+
+    # checking that z =/= h(x) updates the mean accordingly
+    zk = np.array([np.cos(np.pi/4),0])
+    mkp, Pkp = ekfdupd.update(mkm, Pkm, zk)
+
+    # Manual Ekfd update
+    Wk = H(mkm)@Pkm@H(mkm).T + R
+    Ck = Pkm@H(mkm).T
+    Kk = np.linalg.solve(Wk,Ck)
+    zk_hat = h(mkm)
+    mkp_des = mkm + Kk@(zk-zk_hat)
+    Pkp_des = Pkm - Ck@Kk.T - Kk@Ck.T + Kk@Wk@Kk.T
+
+    npt.assert_almost_equal(mkp_des,mkp,decimal=15)
+    npt.assert_almost_equal(Pkp_des,Pkp,decimal=15)
+
+    ## Diagonal measurement jacobian test case (H diagonal implies W diagonal)
+    def h(m): return np.array([0.5*m[0]**2, 0.5*m[1]**2])
+    def H(m): return np.array([[m[0], 0],
+                               [0, m[1]]])
+    R = np.array([[0.1**2, 0],
+                  [0, 0.1**2]])
+    ekfdupd = filters.EkfdUpdate(h = h, H = H, R = R)
+
+    mkm = np.array([1, 1])
+    Pkm = np.eye(2)
+
+    Wk = ekfdupd.innovations_cov(Pkm, h_args = (mkm))
+    off_diag = Wk[~np.eye(Wk.shape[0], dtype=bool)]
+
+    npt.assert_almost_equal(off_diag, 0.0, decimal=15)
+
+    ## Linear measurement test case
+    def h(m): return np.array([m[1], m[0]])
+    H = np.array([[0,1],
+                  [1,0]])
+    R = np.array([[0.1**2, 0],
+                  [0, 0.1**2]])
+    kfdupd = filters.KfdUpdate(H = H, R = R)
+    ekfdupd = filters.EkfdUpdate(h = h, H = H, R = R)
+
+    mkm = np.array([1, -1])
+    Pkm = np.eye(2)
+    zk = np.array([-1.1, 0.9])
+
+    mkp_kfd, Pkp_kfd = kfdupd.update(mkm, Pkm, zk)
+    mkp_ekfd, Pkp_ekfd = ekfdupd.update(mkm, Pkm, zk)
+
+    npt.assert_almost_equal(mkp_kfd,mkp_ekfd,decimal=15)
+    npt.assert_almost_equal(Pkp_kfd,Pkp_ekfd,decimal=15)
+
 def test_badunderweighting():
     R = np.eye(2)
     H = np.eye(2)
@@ -308,6 +378,82 @@ def test_GmkfUpdate():
         rtol=1e-8
     )
 
+def test_GmekfUpdate():
+    """ test Gaussian mixture extended Kalman filter update """
+    ## Single mixand to make sure it is the same as EkfdUpdate()
+    def h(m): return np.array([np.linalg.norm(m), np.arctan2(m[1], m[0])])
+    def H(m): return np.array([[m[0]/np.linalg.norm(m), m[1]/np.linalg.norm(m)],
+                               [-m[1]/(m[0]**2*(1+(m[1]/m[0])**2)),1/(m[0]*(1+(m[1]/m[0])**2))]])
+    R = np.array([[0.1**2, 0],
+                  [0, 0.1**2]])
+
+    ekfdupd = filters.EkfdUpdate(h = h, H = H, R = R)
+    gmekfupd = filters.GmekfUpdate(h = h, H = H, R = R)
+
+    mkm = np.array([np.cos(np.pi/4), np.sin(np.pi/4)])
+    Pkm = np.eye(2)
+
+    pkm = pygm.GaussianMixture(1,mkm,Pkm)
+
+    zk = np.array([np.cos(np.pi/4), 0])
+
+    mkp_ekfd, Pkp_ekfd = ekfdupd.update(mkm,Pkm,zk)
+    pkp = gmekfupd.update(pkm,zk)
+    mkp_gmekf = pkp.get_m().squeeze()
+    Pkp_gmekf = pkp.get_P().squeeze()
+
+    npt.assert_almost_equal(mkp_ekfd,mkp_gmekf,decimal=15)
+    npt.assert_almost_equal(Pkp_ekfd,Pkp_gmekf,decimal=15)
+
+    ## Bimodal distribution with measurement in agreement with only one mixand
+    m1 = np.array([np.cos(np.pi/4), np.sin(np.pi/4)])
+    m2 = np.array([-10,-10])
+    P1 = np.eye(2)
+    P2 = np.eye(2)
+    pkm = pygm.GaussianMixture([0.5,0.5],[m1,m2],[P1,P2])
+    zk = np.array([np.cos(np.pi/4), np.sin(np.pi/4)])
+    pkp = gmekfupd.update(pkm,zk)
+    wkp = pkp.get_w().squeeze()
+
+    npt.assert_almost_equal(wkp[1],0,decimal=15)
+
+    ## Linear measurements to compare against GmkfUpdate()
+    def h(m): return np.array([m[1], m[0]])
+    H = np.array([[0,1],
+                  [1,0]])
+    R = np.array([[0.1**2, 0],
+                  [0, 0.1**2]])
+    
+    gmkfupd = filters.GmkfUpdate(H = H, R = R)
+    gmekfupd = filters.GmekfUpdate(h = h, H = H, R = R)
+
+    wkm = np.array([0.8,
+                    0.1,
+                    0.1])
+    mkm = np.array([[1,-1],
+                    [0,0],
+                    [1,1]])
+    Pkm = np.array([np.eye(2),
+                    np.eye(2),
+                    np.eye(2)])
+    pkm = pygm.GaussianMixture(wkm,mkm,Pkm)
+
+    zk = np.array([-1.1, 0.9])
+
+    pkp_gmkf = gmkfupd.update(pkm, zk)
+    pkp_gmekf = gmekfupd.update(pkm, zk)
+
+    wkp_gmkf = pkp_gmkf.get_w()
+    mkp_gmkf = pkp_gmkf.get_m()
+    Pkp_gmkf = pkp_gmkf.get_P()
+
+    wkp_gmekf = pkp_gmekf.get_w()
+    mkp_gmekf = pkp_gmekf.get_m()
+    Pkp_gmekf = pkp_gmekf.get_P()
+
+    npt.assert_almost_equal(wkp_gmkf,wkp_gmekf,decimal=15)
+    npt.assert_almost_equal(mkp_gmkf,mkp_gmekf,decimal=15)
+    npt.assert_almost_equal(Pkp_gmkf,Pkp_gmekf,decimal=15)
 
 def test_GmukfUpdate():
     """ test Gaussian mixture unscented Kalman filter update """

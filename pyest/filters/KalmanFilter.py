@@ -626,3 +626,261 @@ class EkfdPredict(KalmanDiscretePredict):
         return self._F
 
     F = property(_get_F, _set_F)
+
+class EkfdUpdate(KalmanDiscreteUpdate):
+    """ EkfdUpdate Discrete extended Kalman filter update
+
+    Parameters
+    ----------
+    h  : callable
+        measurement function of the form :math:`h(x, ...)`
+    R  : ndarray
+        (ny,ny) measurement noise covariance matrix
+    H  : callable
+        (nz,nx) measurement Jacobian matrix of the form :math:`H(x)`
+    L  : (optional) ndarray
+        (nz,ny) mapping matrix mapping measurement noise into
+        measurement space
+    cov_method : (optional) string
+        method to use for covariance update. Valid options include 'general'
+        (default), 'Joseph', 'standard', and 'KWK'.
+    p : (optional) scalar
+        underweighting factor. p=1 results in no underweighting. p-->0 results
+        in no covariance update
+    """
+
+    def __init__(self, h, R, H, L=None, h_args=(), cov_method='general', p=None):
+
+        super().__init__(R=R, L=L, p=p)
+
+        #TODO: check cov_update method
+        #TODO: residual editing
+
+        self.cov_method = cov_method
+        self.h = h
+        self.H = H
+
+    def __set_h(self, h):
+        self._h = h
+
+    def __set_H(self, H):
+        if isinstance(H, np.ndarray):
+            H = convert_mat_to_fun(H)
+        self._H = H
+
+
+    def __get_H(self):
+        return self._H
+    
+    def __get_h(self):
+        return self._h
+
+    H = property(__get_H, __set_H)
+    h = property(__get_h, __set_h)
+
+    @staticmethod
+    def gain(C, W):
+        """ compute filter gain
+
+        Parameters
+        ----------
+        C : ndarray
+            (nx,nz) cross-covariance
+        W : ndarray
+            (nz,nz) innovations covariance
+
+        Returns
+        -------
+        K : ndarray
+            gain matrix
+
+        """
+        return np.linalg.solve(W.T, C.T).T
+
+    def __innovations_cov(self, Pkm, Hk):
+        """ compute inovations covariance
+        Parameters
+        ----------
+        Pkm : ndarray
+            (nx,nx) prior covariance matrix at time k
+        Hk : ndarray
+            (nz,nx) measurement function Jacobian evaluated at mkm
+        h_args : (optional) tuple
+            deterministic parameters to be passed to measurement function
+
+        Returns
+        -------
+        W : ndarray
+            (nz,nz) innovations covariance
+        """
+        return Hk @ Pkm @ Hk.T + self._LRLt
+
+    def innovations_cov(self, Pkm, h_args=()):
+        """ compute inovations covariance
+        Parameters
+        ----------
+        Pkm : ndarray
+            (nx,nx) prior covariance matrix at time k
+        h_args : (optional) tuple
+            deterministic parameters to be passed to measurement function
+
+        Returns
+        -------
+        W : ndarray
+            (nz,nz) innovations covariance
+        """
+        h_args = make_tuple(h_args)
+        Hk = self._H(*h_args)
+        return self.__innovations_cov(Pkm, Hk)
+
+    def __cross_cov(self, Pkm, Hk):
+        """ compute cross covariance
+        Parameters
+        ----------
+        Pkm : ndarray
+            (nx,nx) prior covariance matrix at time k
+        Hk : ndarray
+            (nz,nx) measurement function Jacobian evaluated at mkm
+
+        Returns
+        -------
+        C : ndarray
+            (nx,nz) cross covariance
+        """
+        return Pkm @ Hk.T
+
+    def cross_cov(self, mkm, Pkm, h_args=()):
+        """ compute cross covariance
+        Parameters
+        ----------
+        mkm : ndarray
+            (nx,) prior mean at time k
+        Pkm : ndarray
+            (nx,nx) prior covariance matrix at time k
+        h_args : (optional) tuple
+            deterministic parameters to be passed to measurement function
+
+        Returns
+        -------
+        C : ndarray
+            (nx,nz) cross covariance
+        """
+        h_args = make_tuple(h_args)
+        Hk = self._H(mkm,*h_args)
+        return self.__cross_cov(Pkm, Hk)
+
+
+    def __expected_meas(self, mkm, h_func):
+        """ compute measurement expectation
+        Parameters
+        ----------
+        mkm : ndarray
+            (nx,) prior mean at time k
+        Hk : ndarray
+            (nz,nx) measurement function Jacobian evaluated at mkm
+
+        Returns
+        -------
+        w  : ndarray
+            (nz,) predicted measurement at time k
+        """
+        return h_func(mkm)
+
+    def expected_meas(self, mkm, h_args=()):
+        """ compute measurement expectation
+        Parameters
+        ----------
+        mkm : ndarray
+            (nx,) prior mean at time k
+        h_args : (optional) tuple
+            deterministic parameters to be passed to measurement function
+
+        Returns
+        -------
+        w  : ndarray
+            (nz,) predicted measurement at time k
+        """
+        h_args = make_tuple(h_args)
+        return self.h(mkm, *h_args)
+
+    def update(self, mkm, Pkm, z, h=None, R=None, H=None, h_args=(), interm_vals=False):
+        """ perform Extended Kalman filter update
+
+        Parameters
+        ----------
+        mkm : ndarray
+            (nx,) prior mean at time k
+        Pkm : ndarray
+            (nx,nx) prior covariance matrix at time k
+        z  : ndarray
+            (nz,) measurement at time k
+        h  : callable
+            measurement function of the form :math:`h(x, ...)`. If not provided, self.h will be used.
+        R  : (optional) ndarray
+            (ny,ny) measurement noise covariance matrix. If not provided, self.R will be used.
+        H  : (optional) callable
+            (nz,nx) measurement Jacobian matrix measurement Jacobian matrix of the form :math:`H(x)`. If not provided, self.H will be used.
+        h_args : (optional) tuple
+            deterministic parameters to be passed to measurement function
+
+        Returns
+        -------
+        mkp : ndarray
+            (nx,) posterior mean
+        Pkp : ndarray
+            (nx,nx) posterior state error covariance
+
+        If interm_vals is true, additionally returns a dictionary containing:
+        W : ndarray
+            (nz,nz) innovatations covariance
+        C : ndarray
+            (nx,nz) cross-covariance
+        K : ndarray
+            gain matrix
+        zhat : ndarray
+            predicted measurement
+        """
+        #TODO: check measurement size
+        if h is not None:
+            self.h = h
+        if H is not None:
+            self.H = H
+        if R is not None:
+            self.R = R
+
+        h_args = make_tuple(h_args)
+        Hk = self.H(mkm, *h_args)
+        hk_func = lambda mkm: self._h(mkm, *h_args)
+
+        # predicted measurement
+        w = self.__expected_meas(mkm, hk_func)
+        W = self.__innovations_cov(Pkm, Hk)
+        C = self.__cross_cov(Pkm, Hk)
+
+        K = KfdUpdate.gain(C, W)
+        mkp = mkm + K@(z - w)
+
+        if self.cov_method == 'general':
+            # general form. does not require gain be Kalman gain. gain must
+            # be linear
+            Pkp = Pkm - C@K.T - K@C.T + K@W@K.T
+        elif self.cov_method == 'Joseph':
+            # Joseph form. does not require gain be Kalman gain.
+            # measurements must be linear
+            I = np.eye(self._H.shape[1])
+            ImKH = I - K@H
+            Pkp = ImKH@Pkm@ImKH.T + K@self._LRLt@K.T
+        elif self.cov_method == 'standard':
+            # standard form. requires gain be Kalman gain and linear
+            # measurements
+            I = np.eye(self._H.shape[1])
+            Pkp = (I - K@self._H)@Pkm
+        elif self.cov_method == 'KWK':
+            # yet another form. requires gain be Kalman gain but does not
+            # require linear measurements
+            Pkp = Pkm - K@W@K.T
+
+        if not interm_vals:
+            return mkp, Pkp
+        else:
+            return mkp, Pkp, {'W':W, 'C':C, 'K':K, 'zhat':w}
