@@ -846,12 +846,12 @@ def split_for_fov(p, fovs, split_opts):
     # allocate memory
     w_split = np.full([n2split * split_opts.L], np.nan)
     m_split = np.full([n2split * split_opts.L, p.dim], np.nan)
-    P_split = np.full([n2split * split_opts.L, p.dim, p.dim], np.nan)
-    S_split = np.full([n2split * split_opts.L, p.dim, p.dim], np.nan)
+    Schol_split = np.full([n2split * split_opts.L, p.dim, p.dim], np.nan)
+    Seig_split = np.full([n2split * split_opts.L, p.dim, p.dim], np.nan)
 
     # create a queue of components for splitting
-    w_q, m_q, P_q = p[split_mask]
-    S_q = p.Seig[split_mask]
+    w_q, m_q, _ = p[split_mask]
+    Schol_q = p.Schol[split_mask]
 
     split_dir_q = split_dir[split_mask]
     idx = 0
@@ -859,20 +859,20 @@ def split_for_fov(p, fovs, split_opts):
         # pop the elements from the queue
         wi, w_q = w_q[0], w_q[1:]
         mi, m_q = m_q[0], m_q[1:]
-        Pi, P_q = P_q[0], P_q[1:]
-        Si, S_q = S_q[0], S_q[1:]
+        Scholi, Schol_q = Schol_q[0], Schol_q[1:]
         diri, split_dir_q = split_dir_q[0], split_dir_q[1:]
 
-        pi_split = split_gaussian(wi, mi, Pi, split_opts, "full", diri)
+        pi_split = split_gaussian(wi, mi, Scholi, split_opts, "cholesky", diri)
 
         assert np.all(np.isreal(pi_split.m))
         w_split[idx: idx + split_opts.L] = pi_split.w
         m_split[idx: idx + split_opts.L] = pi_split.m
-        P_split[idx: idx + split_opts.L] = pi_split.P
-        S_split[idx: idx + split_opts.L] = pi_split.Seig
+        Schol_split[idx: idx + split_opts.L] = pi_split.Schol
+        Seig_split[idx: idx + split_opts.L] = pi_split.Seig
         idx += split_opts.L
 
-    p_split = GaussianMixture(w_split, m_split, P_split, Seig=S_split)
+    p_split = GaussianMixture(w_split, m_split, Schol_split,
+                              cov_type="cholesky", Seig=Seig_split)
     # recurse until no further splitting is needed
     split_opts_copy = copy(split_opts)
     split_opts_copy.recurse_depth -= 1
