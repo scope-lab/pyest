@@ -90,7 +90,7 @@ class GmukfUpdate(UkfUpdate, GaussianMixtureUpdate):
         return pygm.eval_mvnpdf(z, zhat, W)
 
     def cond_likelihood_prod(self, m, P, z, h_args=(), interm_vals=False):
-        """ compute the product of the (non)linear Gaussian likelihood function and
+        r""" Compute the product of the (non)linear Gaussian likelihood function and
         another Gaussian pdf
 
         Parameters
