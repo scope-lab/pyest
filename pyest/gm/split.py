@@ -911,6 +911,7 @@ def recursive_split(p, split_opts, identify_split_components, *args):
         return p
     # identify the components that need split and compute the split direction
     split_mask, split_dir = identify_split_components(p, *args)
+    split_mask &= (p.w >= split_opts.min_weight)
     n2split = np.sum(split_mask)
     if n2split == 0:
         return p
