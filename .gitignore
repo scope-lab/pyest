@@ -150,9 +150,22 @@ compiled_build/
 # tags
 *tags
 
-# split cache
+# caches
 pyest/gm/splitl2_cov_cache/
 pyest/gm/splitl2_cache/
+pyest/gm/splitcache/
+pyest/metricsweev1_cache/
+pyest/metricsweev1_sample_cache/
+pyest/metricsweevinf_cache/
+pyest/metricsweevinf_sample_cache/
+pyest/metricsaweev1_cache/
+pyest/metricsaweev1_sample_cache/
+pyest/metricsaweevinf_cache/
+pyest/metricsaweevinf_sample_cache/
+pyest/metricsmweev1_cache/
+pyest/metricsmweev1_sample_cache/
+pyest/metricsmweevinf_cache/
+pyest/metricsmweevinf_sample_cache/
 
 # benchmark data
 .benchmarks/
