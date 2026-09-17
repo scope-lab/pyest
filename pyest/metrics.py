@@ -4,8 +4,8 @@ from scipy.linalg import solve_triangular
 from scipy.integrate import dblquad
 
 
-def l2_dist(p1, p2):
-    """ compute L2 distance between GMs p1 and p2
+def l2_dist(p1: pygm.GaussianMixture, p2: pygm.GaussianMixture) -> float:
+    """Compute L2 distance between GMs p1 and p2.
 
     Parameters
     ----------
@@ -20,14 +20,21 @@ def l2_dist(p1, p2):
         L2 distance between the two input GMs
 
     """
-
     # first term is product of p1 and p1
-    t1 = np.sum([
-        wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p1 for (wj, mj, Pj) in p1
-    ])
-    t2 = np.sum([
-        wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p1 for (wj, mj, Pj) in p2
-    ])
+    t1 = np.sum(
+        [
+            wi * wj * pygm.eval_mvnpdf(mi, mj, Pi + Pj)
+            for (wi, mi, Pi) in p1
+            for (wj, mj, Pj) in p1
+        ]
+    )
+    t2 = np.sum(
+        [
+            wi * wj * pygm.eval_mvnpdf(mi, mj, Pi + Pj)
+            for (wi, mi, Pi) in p1
+            for (wj, mj, Pj) in p2
+        ]
+    )
     t3 = 0.0
     n = len(p2)
     for i in range(n):
@@ -38,16 +45,16 @@ def l2_dist(p1, p2):
             wj, mj, Pj = p2[j]
             val = wi * wj * pygm.eval_mvnpdf(mi, mj, Pi + Pj)
             t3 += 2 * val
-    #t3 = np.sum([
-    #    wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p2 for (wj, mj, Pj) in p2
-    #])
+    # t3 = np.sum([
+    #     wi*wj*pygm.eval_mvnpdf(mi, mj, Pi + Pj) for (wi, mi, Pi) in p2 for (wj, mj, Pj) in p2
+    # ])
 
-    l2 = t1 - 2*t2 + t3
+    l2 = t1 - 2 * t2 + t3
     return l2
 
 
-def max_covariance_ratio(S, S_ref):
-    """ compute the maximum covariance ratio between two distributions
+def max_covariance_ratio(S: np.ndarray, S_ref: np.ndarray) -> float:
+    """Compute the maximum covariance ratio between two distributions.
 
     Required:
     ---------
@@ -58,10 +65,11 @@ def max_covariance_ratio(S, S_ref):
         covariance matrix lower-triangular Cholesky square-root factor of
         the reference distribution
 
-    Returns:
-    --------
+    Returns
+    -------
     float
         maximum covariance ratio
+
     """
     mat = solve_triangular(S, S_ref, lower=True)
     s_vals = np.linalg.svd(mat, compute_uv=False, hermitian=False)
@@ -69,7 +77,7 @@ def max_covariance_ratio(S, S_ref):
 
 
 def madem(m, S, m_ref):
-    """ Mahalanobis distance of the error of the mean
+    """Mahalanobis distance of the error of the mean.
 
     Required:
     ---------
@@ -81,18 +89,19 @@ def madem(m, S, m_ref):
     m_ref : np.ndarray
         mean of the reference distribution
 
-    Returns:
-    --------
+    Returns
+    -------
     float
         Mahalanobis distance of the error of the mean (MaDEM)
+
     """
     return np.linalg.norm(
-        solve_triangular(S, m - m_ref, lower=True)
+        solve_triangular(S, m - m_ref, lower=True),
     )
 
 
 def integral_squared_error_2d(p1, p2, a, b, c, d, epsabs=1.49e-2, epsrel=1.49e-2):
-    ''' compute integral squared error between two 2D densities
+    """Compute integral squared error between two 2D densities.
 
     Parameters
     ----------
@@ -129,13 +138,19 @@ def integral_squared_error_2d(p1, p2, a, b, c, d, epsabs=1.49e-2, epsrel=1.49e-2
     makes no assumptions about the form of the densities. If both p1 and p2
     are Gaussian mixtures, use l2_dist instead, which is exact and more
     efficient.
-    '''
-    integrand_fun = lambda y,x: (p1([x,y])-p2([x,y]))**2
+
+    """
+
+    def integrand_fun(y, x):
+        return (p1([x, y]) - p2([x, y])) ** 2
+
     return dblquad(integrand_fun, a, b, c, d, epsabs=epsabs, epsrel=epsrel)
 
 
-def normalized_integral_squared_error_2d(p1, p2, a, b, c, d, epsabs=1.49e-2, epsrel=1.49e-2):
-    ''' compute normalized integral squared error between two 2D, densities
+def normalized_integral_squared_error_2d(
+    p1, p2, a, b, c, d, epsabs=1.49e-2, epsrel=1.49e-2
+):
+    """Compute normalized integral squared error between two 2D, densities.
 
     Parameters
     ----------
@@ -175,19 +190,31 @@ def normalized_integral_squared_error_2d(p1, p2, a, b, c, d, epsabs=1.49e-2, eps
     instead for the numerator and denominator terms separately, which is
     exact and more efficient.
 
-    '''
-    ise, err = integral_squared_error_2d(p1, p2, a, b, c, d, epsabs=epsabs, epsrel=epsrel)
+    """
+    ise, err = integral_squared_error_2d(
+        p1, p2, a, b, c, d, epsabs=epsabs, epsrel=epsrel
+    )
     # if p1 is a GaussianMixtureRv, use l2_dist
     if isinstance(p1, pygm.GaussianMixture):
         int_p1_sq = pygm.integral_squared_gm(p1)
     else:
-        p1_sq_integrand_fun = lambda y,x: p1([x,y])**2
-        int_p1_sq = dblquad(p1_sq_integrand_fun, a, b, c, d, epsabs=epsabs, epsrel=epsrel)[0]
+
+        def p1_sq_integrand_fun(y, x):
+            return p1([x, y]) ** 2
+
+        int_p1_sq = dblquad(
+            p1_sq_integrand_fun, a, b, c, d, epsabs=epsabs, epsrel=epsrel
+        )[0]
     if isinstance(p2, pygm.GaussianMixture):
         int_p2_sq = pygm.integral_squared_gm(p2)
     else:
-        p2_sq_integrand_fun = lambda y,x: p2([x,y])**2
-        int_p2_sq = dblquad(p2_sq_integrand_fun, a, b, c, d, epsabs=epsabs, epsrel=epsrel)[0]
-    nise = ise/(int_p1_sq + int_p2_sq)
+
+        def p2_sq_integrand_fun(y, x):
+            return p2([x, y]) ** 2
+
+        int_p2_sq = dblquad(
+            p2_sq_integrand_fun, a, b, c, d, epsabs=epsabs, epsrel=epsrel
+        )[0]
+    nise = ise / (int_p1_sq + int_p2_sq)
 
     return nise, ise, err
