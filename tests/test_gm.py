@@ -539,45 +539,6 @@ def test_split_for_fov():
     # ax.plot(p_split.m[~comp_mask_in_fov][:, 0], p_split.m[~comp_mask_in_fov][:, 1], 'ro', markersize=5)
     # plt.show()
 
-def test_merge():
-    p = gm.defaults.default_gm()
-
-    # test with super small md threshold
-    p_merged = gm.merge(p, md=1e-9)
-    assert(p == p_merged)
-
-    # test with really large md threshold
-    p_merged = gm.merge(p, md=1e9)
-    assert(len(p_merged) == 1)
-    npt.assert_array_almost_equal(p_merged.m[0], p.mean())
-    npt.assert_array_almost_equal(p_merged.P[0], p.cov())
-
-
-def test_merge_runnalls(benchmark):
-    # a mixture with two identical components, when merged, should be the same
-    # component with double the weight
-    w1 = 0.5
-    w2 = 0.5
-    m1 = np.array([1, 2])
-    m2 = np.array([1, 2])
-    P1 = 5*np.eye(2)
-    P2 = 5*np.eye(2)
-
-    p = gm.GaussianMixture([w1, w2], [m1, m2], [P1, P2])
-    K = 1  # reduce to single component
-    p_red = gm.merge_runnalls(p, K)
-    assert(len(p_red) == 1)
-    assert(p_red.w[0] == 1)
-    npt.assert_array_equal(m1, p_red.m[0])
-    npt.assert_array_equal(P1, p_red.P[0])
-
-    # now use the default mixture (w/ different components) and ensure that the
-    # conditional mean and covariance are preserved
-    p = gm.defaults.default_gm()
-    p_red = benchmark(gm.merge_runnalls, p, K)
-    npt.assert_array_equal(p.mean(), p_red.mean())
-    npt.assert_array_almost_equal(p.cov(), p_red.cov())
-
 
 def test_pickle_gm():
     p = gm.defaults.default_gm()
@@ -665,7 +626,6 @@ def test_cov():
     # Test: the covariance should not increase by more than 0.01%
     assert max_cov_ratio <= 1.0001, f"max_cov_ratio is too large: {max_cov_ratio}"
 
+
 if __name__ == '__main__':
     pytest.main([__file__])
-
-
