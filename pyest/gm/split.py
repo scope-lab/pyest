@@ -950,9 +950,12 @@ def recursive_split(p, split_opts, identify_split_components, *args):
     )
 
     if np.any(~split_mask):
-        # remove originals
-        p_no_split = GaussianMixture(*p[~split_mask])
-        return p_no_split + p_split
+        # Concatenate the unsplit components with p_split
+        return GaussianMixture(
+            np.concatenate((p.w[~split_mask], p_split.w)),
+            np.concatenate((p.m[~split_mask], p_split.m)),
+            np.concatenate((p.Schol[~split_mask], p_split.Schol)),
+            cov_type="cholesky")
     else:
         return p_split
 

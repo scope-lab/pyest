@@ -9,6 +9,7 @@ from pyest.sensors import ConvexPolyhedralFieldOfView
 from pyest.utils import fail
 import pytest
 from pyest.metrics import max_covariance_ratio
+from scipy.stats import _covariance
 
 
 def test_gm_equal_weights():
@@ -372,6 +373,40 @@ def test_split_gaussian():
         new_split_err = gm.l2_dist(p, p_copy)
         assert(new_split_err < split_err)
         split_err = new_split_err
+
+
+def test_recursive_split_cholesky():
+    # This test is to verify that, if a GM goes into recursive_split with
+    # covariances specified by cholesky factors, it will come out of it like
+    # that as well
+    w = np.array([0.5, 0.5])
+    m = np.array([[0, 1], [1, 0]])
+    S = np.array([0.01*np.eye(2), 100*np.eye(2)])
+    p = gm.GaussianMixture(w, m, S, cov_type='cholesky')
+    assert (all([isinstance(cov, _covariance.CovViaCholesky)
+                 for cov in p._cov]))
+
+    split_opts = gm.GaussSplitOptions(L=3, recurse_depth=1)
+
+    # Splitting everything
+    p_split = gm.split.recursive_split(
+        p, split_opts, gm.split.id_variance, 0)
+    assert (all([isinstance(cov, _covariance.CovViaCholesky)
+                 for cov in p_split._cov]))
+
+    # Splitting nothing
+    p_split = gm.split.recursive_split(
+        p, split_opts, gm.split.id_variance, 10**8)
+    assert (all([isinstance(cov, _covariance.CovViaCholesky)
+                 for cov in p_split._cov]))
+
+    # Only splitting some things
+    p_split = gm.split.recursive_split(
+        p, split_opts, gm.split.id_variance, 10)
+    print([type(cov)
+           for cov in p_split._cov])
+    assert (all([isinstance(cov, _covariance.CovViaCholesky)
+                 for cov in p_split._cov]))
 
 
 def test_eig_sqrt_factor():
