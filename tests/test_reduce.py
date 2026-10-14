@@ -196,6 +196,30 @@ def test_merge_identical():
     npt.assert_allclose(p2.cov(), p2_merged.cov())
 
 
+def test_runnalls_b_dist():
+    w1 = 0.5
+    m1 = np.array([0, 1])
+    S1 = np.array([[1, 0], [-1, 2]])
+    P1 = S1 @ S1.T
+    w1_log_det_P1 = w1*np.linalg.slogdet(P1)[1]
+    w2 = 0.3
+    m2 = np.array([-1, 0])
+    S2 = np.array([[2, 0], [2, 2]])
+    P2 = S2 @ S2.T
+    w2_log_det_P2 = w2*np.linalg.slogdet(P2)[1]
+
+    b_full = reduce.runnalls_b_dist(w1, w2, m1, m2, S1, S2,
+                                    w1_log_det_P1,
+                                    w2_log_det_P2,
+                                    cov_type='cholesky')
+    b_chol = reduce.runnalls_b_dist(w1, w2, m1, m2, P1, P2,
+                                    w1_log_det_P1,
+                                    w2_log_det_P2,
+                                    cov_type='full')
+
+    npt.assert_allclose(b_full, b_chol, rtol=1e-14, atol=1e-14)
+
+
 def test_merge_runnalls():
     # a mixture with two identical components, when merged, should be the same
     # component with double the weight
