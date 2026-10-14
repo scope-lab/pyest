@@ -1,4 +1,6 @@
 import numpy as np
+from numba import jit
+
 
 def is_pos_def(x):
     """ check that x is positive definite """
@@ -120,3 +122,119 @@ def cholesky_from_sqrt_precision(U):
     """
     P_sqrt = np.linalg.inv(U).T
     return triangularize(P_sqrt)
+
+
+# Manual triangular solvers so they can be jitted (unlike scipy's)
+@jit(nopython=True)
+def _solve_lower_triangular(L, B):
+    """ Solves LX = B where L is lower triangular.
+
+    Parameters
+    ----------
+    L : ndarray
+        (n,n) lower triangular matrix
+    B: ndarray
+        (n,) vector or (n,m) matrix
+
+    Returns
+    -------
+    X : ndarray
+        (n,) vector or (n,m) matrix
+    """
+    n = L.shape[0]
+
+    if B.ndim == 1:
+        X = np.empty(n)
+        for i in range(n):
+            tmp = B[i]
+            for j in range(i):
+                tmp -= L[i, j] * X[j]
+            X[i] = tmp / L[i, i]
+        return X
+
+    else:  # B.ndim == 2
+        m = B.shape[1]
+        X = np.empty((n, m))
+        for i in range(n):
+            tmp = B[i, :].copy()
+            for j in range(i):
+                tmp -= L[i, j] * X[j, :]
+            X[i, :] = tmp / L[i, i]
+        return X
+
+
+@jit(nopython=True)
+def _solve_upper_triangular(U, B):
+    """ Solves UX = B where U is upper triangular.
+
+    Parameters
+    ----------
+    U : ndarray
+        (n,n) upper triangular matrix
+    B: ndarray
+        (n,) vector or (n,m) matrix
+
+    Returns
+    -------
+    X : ndarray
+        (n,) vector or (n,m) matrix
+    """
+    n = U.shape[0]
+
+    if B.ndim == 1:
+        X = np.empty(n)
+        for i in range(n - 1, -1, -1):
+            tmp = B[i]
+            for j in range(i + 1, n):
+                tmp -= U[i, j] * X[j]
+            X[i] = tmp / U[i, i]
+        return X
+
+    else:  # B.ndim == 2
+        m = B.shape[1]
+        X = np.empty((n, m))
+        for i in range(n - 1, -1, -1):
+            tmp = B[i, :].copy()
+            for j in range(i + 1, n):
+                tmp -= U[i, j] * X[j, :]
+            X[i, :] = tmp / U[i, i]
+        return X
+
+
+@jit(nopython=True)
+def solve_triangular(A, B, lower=True, atol=1e-15):
+    """ Solves AX = B where A is triangular.
+
+    Parameters
+    ----------
+    A : ndarray
+        (n,n) triangular matrix
+    B : ndarray
+        (n,) vector or (n,m) matrix
+    lower : bool
+        If True, A is treated as lower triangular. If False, A is treated as
+        upper triangular.
+    atol : float
+        Absolute tolerance below which diagonal elements will be considered 0,
+        and the matrix will be considered singular
+
+    Returns
+    -------
+    X : ndarray
+        (n,) vector or (n,m) matrix
+
+    Raises
+    ------
+    ValueError
+        if A is singular
+    """
+    A = np.asarray(A, np.float64)
+    B = np.asarray(B, np.float64)
+
+    if (np.abs(np.diag(A)) < atol).any():
+        raise ValueError("triangular solve failed: A is singular")
+
+    if lower:
+        return _solve_lower_triangular(A, B)
+    else:
+        return _solve_upper_triangular(A, B)

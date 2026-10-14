@@ -68,5 +68,37 @@ def test_cholesky_from_sqrt_precision():
     npt.assert_allclose(S@S.T, P)
 
 
+def test_solve_triangular():
+    # Just testing against numpy's solve
+    B = np.array([[1, 3, 2],
+                  [4, -1, 2],
+                  [2, -5, -3]])
+    b = np.array([1, 2, 3])
+    A = np.array([[1, 0, 0],
+                  [1, 2, 0],
+                  [1, 1, 4]])
+    npt.assert_allclose(linalg.solve_triangular(A, B, lower=True),
+                        np.linalg.solve(A, B), rtol=1e-14, atol=1e-14)
+    npt.assert_allclose(linalg.solve_triangular(A, b, lower=True),
+                        np.linalg.solve(A, b), rtol=1e-14, atol=1e-14)
+
+    A = np.array([[1, 2, 2],
+                  [0, -3, 2],
+                  [0, 0, 4]])
+    npt.assert_allclose(linalg.solve_triangular(A, B, lower=False),
+                        np.linalg.solve(A, B), rtol=1e-14, atol=1e-14)
+    npt.assert_allclose(linalg.solve_triangular(A, b, lower=False),
+                        np.linalg.solve(A, b), rtol=1e-14, atol=1e-14)
+
+    # Checking singular matrices raise a ValueError
+    A = np.array([[0, 0, 0],
+                  [0, 1, 0],
+                  [0, 0, 1]])
+    with pytest.raises(ValueError):
+        _ = linalg.solve_triangular(A, B, lower=True)
+    with pytest.raises(ValueError):
+        _ = linalg.solve_triangular(A, B, lower=False)
+
+
 if __name__ == '__main__':
     pytest.main([__file__])
